@@ -35,8 +35,11 @@ export async function POST(req: Request) {
       message: "Compte créé avec succès. En attente de validation par un administrateur." 
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur lors de l'inscription:", error);
-    return NextResponse.json({ error: "Une erreur est survenue lors de l'inscription" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Une erreur est survenue lors de l'inscription",
+      details: error.message 
+    }, { status: 500 });
   }
 }
