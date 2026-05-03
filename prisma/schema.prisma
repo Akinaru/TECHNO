@@ -12,7 +12,7 @@ model User {
   name          String?
   email         String?   @unique
   password      String
-  image         String?
+  image         String?   @db.LongText
   role          String    @default("USER") // USER, ADMIN
   isApproved    Boolean   @default(false)
   createdAt     DateTime  @default(now())
