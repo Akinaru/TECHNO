@@ -62,7 +62,7 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 pt-12 md:pt-16">
-      <h1 className="text-4xl font-black mb-8 text-sunset text-center uppercase tracking-tighter italic">TROUVER UN DJ</h1>
+      <h1 className="text-4xl font-black mb-8 text-sunset text-center uppercase tracking-tighter italic pr-4">TROUVER UN DJ</h1>
       
       {/* Alert Success */}
       <AnimatePresence>
@@ -108,13 +108,13 @@ export default function SearchPage() {
                   <span className="absolute inset-0 flex items-center justify-center text-2xl">🎵</span>
                 )}
               </div>
-              <h3 className="font-bold text-xl tracking-tight group-hover:text-sunset-orange transition-colors">{artist.name}</h3>
+              <h3 className="font-bold text-xl tracking-tight group-hover:text-sunset-orange transition-colors pr-2">{artist.name}</h3>
             </div>
             
             <button
               onClick={() => handleAdd(artist)}
               disabled={addingId === artist.id}
-              className={`p-3 rounded-full flex items-center gap-2 transition-all font-black uppercase text-xs tracking-widest ${
+              className={`p-3 rounded-full flex items-center gap-2 transition-all font-black uppercase text-xs tracking-widest cursor-pointer ${
                 addingId === artist.id 
                   ? "bg-white text-black scale-95" 
                   : "bg-sunset hover:scale-105 active:scale-95 text-white"

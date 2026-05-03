@@ -43,7 +43,7 @@ export default async function AdminConfigPage() {
 
         <button 
           type="submit"
-          className="bg-sunset px-6 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity"
+          className="bg-sunset px-6 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity cursor-pointer"
         >
           Sauvegarder la configuration
         </button>

@@ -68,7 +68,7 @@ export function Navbar() {
           
           {/* Mobile Menu Toggle (Tablette/Mobile) */}
           <button 
-            className="md:hidden text-white/50 hover:text-white"
+            className="md:hidden text-white/50 hover:text-white cursor-pointer"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -154,7 +154,7 @@ export function Navbar() {
                     <div className="h-px bg-white/5 my-1" />
                     <button 
                       onClick={() => signOut()}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-xs font-black uppercase tracking-widest text-red-500"
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-xs font-black uppercase tracking-widest text-red-500 cursor-pointer"
                     >
                       <LogOut size={14} /> Déconnexion
                     </button>

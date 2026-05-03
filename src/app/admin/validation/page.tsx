@@ -41,12 +41,12 @@ export default async function AdminValidationPage() {
               </div>
               <div className="flex gap-3">
                 <form action={approveUser.bind(null, user.id)}>
-                  <button className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                  <button className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer">
                     Valider
                   </button>
                 </form>
                 <form action={deleteUser.bind(null, user.id)}>
-                  <button className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                  <button className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer">
                     Refuser
                   </button>
                 </form>

@@ -33,15 +33,15 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
         </div>
         
         <div className="text-center md:text-left flex-1">
-          <h1 className="text-5xl md:text-7xl font-black mb-4 text-sunset leading-tight uppercase tracking-tighter">{artist.name}</h1>
+          <h1 className="text-5xl md:text-7xl font-black mb-4 text-sunset leading-tight uppercase tracking-tighter italic pr-6">{artist.name}</h1>
           <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
             <span className="font-bold text-sunset-orange">{artist.seenBy.length}</span>
-            <span className="text-white/70 text-sm uppercase font-black">personnes l'ont vu</span>
+            <span className="text-white/70 text-sm uppercase font-black pr-2">personnes l'ont vu</span>
           </div>
         </div>
       </div>
 
-      <h2 className="text-2xl font-black mb-6 border-b border-white/10 pb-4 tracking-tighter uppercase italic">ILS Y ÉTAIENT :</h2>
+      <h2 className="text-2xl font-black mb-6 border-b border-white/10 pb-4 tracking-tighter uppercase italic pr-2">ILS Y ÉTAIENT :</h2>
       
       <div className="grid gap-4">
         {artist.seenBy.map((entry) => (
@@ -53,8 +53,8 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
                 className="w-12 h-12 text-xl"
               />
               <div>
-                <p className="font-bold text-lg group-hover:text-sunset-orange transition-colors">{entry.user.name}</p>
-                <p className="text-xs text-white/50 uppercase font-bold tracking-widest">Vu le {new Date(entry.createdAt).toLocaleDateString()}</p>
+                <p className="font-bold text-lg group-hover:text-sunset-orange transition-colors pr-2">{entry.user.name}</p>
+                <p className="text-xs text-white/50 uppercase font-bold tracking-widest pr-2">Vu le {new Date(entry.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
             <div className="text-right">

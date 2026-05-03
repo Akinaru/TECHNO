@@ -104,7 +104,7 @@ export function ProfileArtistList({ initialArtists }: ProfileArtistListProps) {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
-                      <h3 className="font-black text-lg leading-tight group-hover:text-sunset-orange transition-colors truncate">{item.artist.name}</h3>
+                      <h3 className="font-black text-lg leading-tight group-hover:text-sunset-orange transition-colors truncate pr-2">{item.artist.name}</h3>
                     </div>
                   </Link>
                 ))}
