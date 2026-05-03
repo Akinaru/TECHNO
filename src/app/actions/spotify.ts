@@ -8,8 +8,33 @@ import { revalidatePath } from "next/cache";
 
 export async function searchAction(query: string) {
   if (!query) return [];
+  const session = await getServerSession(authOptions);
+  
   try {
-    return await searchSpotify(query);
+    const spotifyResults = await searchSpotify(query);
+    
+    // Enrich with database info (fan count + personal count)
+    const enrichedResults = await Promise.all(spotifyResults.map(async (artist: any) => {
+      const dbArtist = await prisma.artist.findUnique({
+        where: { spotifyId: artist.id },
+        include: {
+          _count: {
+            select: { seenBy: true }
+          },
+          seenBy: session?.user?.id ? {
+            where: { userId: session.user.id }
+          } : false
+        }
+      });
+
+      return {
+        ...artist,
+        fanCount: dbArtist?._count.seenBy || 0,
+        personalCount: dbArtist?.seenBy?.[0]?.times || 0
+      };
+    }));
+
+    return enrichedResults;
   } catch (error) {
     console.error("Erreur de recherche Spotify:", error);
     return [];
@@ -79,5 +104,36 @@ export async function addArtistAction(spotifyId: string, name: string, image: st
 
   revalidatePath("/");
   revalidatePath("/profile");
+  revalidatePath("/search"); // To update trending/search counts
   return { success: true };
+}
+
+export async function getTrendingArtistsAction() {
+  const session = await getServerSession(authOptions);
+
+  const trending = await prisma.artist.findMany({
+    include: {
+      _count: {
+        select: { seenBy: true }
+      },
+      seenBy: session?.user?.id ? {
+        where: { userId: session.user.id }
+      } : false
+    },
+    orderBy: {
+      seenBy: {
+        _count: 'desc'
+      }
+    },
+    take: 10
+  });
+
+  return trending.map(artist => ({
+    id: artist.spotifyId || artist.id,
+    localId: artist.id,
+    name: artist.name,
+    image: artist.image,
+    fanCount: artist._count.seenBy,
+    personalCount: artist.seenBy?.[0]?.times || 0
+  }));
 }

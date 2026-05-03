@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 import { 
-  Disc, 
   Users, 
   Plus, 
   Settings, 
@@ -20,13 +20,29 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { getPendingUserCountAction } from "@/app/actions/admin";
 
 export function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function fetchPendingCount() {
+      if (session?.user.role === "ADMIN") {
+        const count = await getPendingUserCountAction();
+        setPendingCount(count);
+      }
+    }
+    fetchPendingCount();
+    
+    // Refresh count on focus or navigation
+    const interval = setInterval(fetchPendingCount, 60000); // every minute
+    return () => clearInterval(interval);
+  }, [session, pathname]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -40,8 +56,16 @@ export function Navbar() {
 
   useEffect(() => {
     setIsDropdownOpen(false);
-    setIsMobileMenuOpen(false);
+    setIsMobilePanelOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (isMobilePanelOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isMobilePanelOpen]);
 
   const navLinks = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -49,153 +73,289 @@ export function Navbar() {
   ];
 
   const adminLinks = [
-    { href: "/admin/validation", label: "Validations", icon: UserCheck },
-    { href: "/admin/config", label: "Configuration", icon: Settings },
+    { 
+      href: "/admin/validation", 
+      label: "Validations", 
+      icon: UserCheck, 
+      showBadge: true 
+    },
+    { 
+      href: "/admin/config", 
+      label: "Configuration", 
+      icon: Settings 
+    },
   ];
 
+  const renderBadge = (count: number) => {
+    if (count <= 0) return null;
+    const label = count > 9 ? "9+" : count.toString();
+    return (
+      <span className="bg-red-500 text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-lg border border-white/10 shrink-0">
+        {label}
+      </span>
+    );
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-md border-b border-white/10 h-16">
-      <div className="max-w-7xl mx-auto px-4 h-full grid grid-cols-3 items-center">
-        
-        {/* GAUCHE : LOGO / TITRE */}
-        <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-sunset p-1 rounded-lg group-hover:rotate-12 transition-transform">
-              <Disc className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-black text-xl tracking-tighter text-sunset">TECHNO</span>
-          </Link>
+    <>
+      <header className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-md border-b border-white/10 h-16">
+        <div className="max-w-7xl mx-auto px-4 h-full grid grid-cols-3 items-center">
           
-          {/* Mobile Menu Toggle (Tablette/Mobile) */}
-          <button 
-            className="md:hidden text-white/50 hover:text-white cursor-pointer"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-
-        {/* CENTRE : BOUTON AJOUTER */}
-        <div className="flex justify-center">
-          <Link 
-            href="/search" 
-            className="bg-sunset hover:brightness-110 transition-all px-4 py-2 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(112,0,255,0.2)]"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            <span className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-white">Ajouter</span>
-          </Link>
-        </div>
-
-        {/* DROITE : NAVIGATION & COMPTE */}
-        <div className="flex justify-end items-center gap-6">
-          {/* Nav Desktop */}
-          <nav className="hidden md:flex items-center gap-4">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href}
-                className={cn(
-                  "text-xs uppercase font-black tracking-widest transition-colors",
-                  pathname === link.href ? "text-white" : "text-white/40 hover:text-white"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* User Dropdown */}
-          {session ? (
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 group cursor-pointer"
-              >
-                <UserAvatar 
-                  image={session.user.image} 
-                  name={session.user.name} 
-                  className="w-8 h-8 border border-white/10 group-hover:border-sunset-orange transition-colors"
-                />
-                <ChevronDown className={cn("w-3 h-3 text-white/30 transition-transform", isDropdownOpen && "rotate-180")} />
-              </button>
-
-              <AnimatePresence>
-                {isDropdownOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-3 w-56 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden p-2"
-                  >
-                    <div className="px-3 py-2 border-b border-white/5 mb-2">
-                      <p className="font-black text-sm text-white truncate">{session.user.name}</p>
-                      <p className="text-[10px] text-white/40 uppercase font-bold tracking-tight">{session.user.role}</p>
-                    </div>
-
-                    <Link href={`/profile/${session.user.id}`} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
-                      <UserIcon size={14} /> Profil
-                    </Link>
-
-                    {session.user.role === "ADMIN" && (
-                      <>
-                        <div className="h-px bg-white/5 my-1" />
-                        {adminLinks.map((link) => (
-                          <Link 
-                            key={link.href} 
-                            href={link.href} 
-                            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white"
-                          >
-                            <link.icon size={14} /> {link.label}
-                          </Link>
-                        ))}
-                      </>
-                    )}
-
-                    <div className="h-px bg-white/5 my-1" />
-                    <button 
-                      onClick={() => signOut()}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-xs font-black uppercase tracking-widest text-red-500 cursor-pointer"
-                    >
-                      <LogOut size={14} /> Déconnexion
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <Link 
-              href="/login" 
-              className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
+          {/* LEFT: LOGO & BURGER */}
+          <div className="flex items-center gap-4">
+            <button 
+              className="md:hidden text-white/50 hover:text-white cursor-pointer p-1 relative"
+              onClick={() => setIsMobilePanelOpen(true)}
             >
-              Login
+              <Menu size={24} />
+              {session?.user.role === "ADMIN" && pendingCount > 0 && (
+                <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black" />
+              )}
+            </button>
+            
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-8 h-8 group-hover:rotate-12 transition-transform duration-500">
+                <Image 
+                  src="/logo.svg" 
+                  alt="Techno Logo" 
+                  fill 
+                  className="object-contain"
+                />
+              </div>
+              <span className="hidden sm:block font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TECHNO</span>
             </Link>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* MOBILE NAV DROPDOWN */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-zinc-950 border-b border-white/10 overflow-hidden"
-          >
-            <div className="p-4 flex flex-col gap-4">
+          {/* CENTER: ADD BUTTON */}
+          <div className="flex justify-center">
+            <Link 
+              href="/search" 
+              className="bg-sunset hover:brightness-110 transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(112,0,255,0.2)]"
+            >
+              <Plus className="w-4 h-4 text-white" />
+              <span className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-white pr-1">Ajouter</span>
+            </Link>
+          </div>
+
+          {/* RIGHT: DESKTOP NAV & PROFILE */}
+          <div className="flex justify-end items-center gap-6">
+            <nav className="hidden md:flex items-center gap-4">
               {navLinks.map((link) => (
                 <Link 
                   key={link.href} 
                   href={link.href}
-                  className="text-sm font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center gap-3"
+                  className={cn(
+                    "text-xs uppercase font-black tracking-widest transition-colors pr-2",
+                    pathname === link.href ? "text-white" : "text-white/40 hover:text-white"
+                  )}
                 >
-                  <link.icon size={16} /> {link.label}
+                  {link.label}
                 </Link>
               ))}
-            </div>
-          </motion.div>
+            </nav>
+
+            {session ? (
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 group cursor-pointer relative"
+                >
+                  <UserAvatar 
+                    image={session.user.image} 
+                    name={session.user.name} 
+                    className="w-8 h-8 border border-white/10 group-hover:border-sunset-orange transition-colors"
+                  />
+                  {session.user.role === "ADMIN" && pendingCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-zinc-950 flex items-center justify-center">
+                        <span className="text-[8px] font-black text-white">{pendingCount > 9 ? "!" : pendingCount}</span>
+                    </div>
+                  )}
+                  <ChevronDown className={cn("hidden sm:block w-3 h-3 text-white/30 transition-transform", isDropdownOpen && "rotate-180")} />
+                </button>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-56 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden p-2"
+                    >
+                      <div className="px-3 py-2 border-b border-white/5 mb-2">
+                        <p className="font-black text-sm text-white truncate pr-2">{session.user.name}</p>
+                        <p className="text-[10px] text-white/40 uppercase font-bold tracking-tight pr-1">{session.user.role}</p>
+                      </div>
+
+                      <Link href={`/profile/${session.user.id}`} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
+                        <UserIcon size={14} /> Profil
+                      </Link>
+
+                      {session.user.role === "ADMIN" && (
+                        <>
+                          <div className="h-px bg-white/5 my-1" />
+                          {adminLinks.map((link) => (
+                            <Link 
+                              key={link.href} 
+                              href={link.href} 
+                              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white"
+                            >
+                              <div className="flex items-center gap-3">
+                                <link.icon size={14} /> {link.label}
+                              </div>
+                              {link.showBadge && renderBadge(pendingCount)}
+                            </Link>
+                          ))}
+                        </>
+                      )}
+
+                      <div className="h-px bg-white/5 my-1" />
+                      <button 
+                        onClick={() => signOut()}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-xs font-black uppercase tracking-widest text-red-500 cursor-pointer"
+                      >
+                        <LogOut size={14} /> Déconnexion
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest pr-2"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* MOBILE PANEL (DRAWER) */}
+      <AnimatePresence>
+        {isMobilePanelOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobilePanelOpen(false)}
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+            />
+            
+            {/* Panel */}
+            <motion.div 
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 z-[70] w-[280px] bg-zinc-950 border-r border-white/10 md:hidden flex flex-col"
+            >
+              <div className="p-6 flex items-center justify-between border-b border-white/5">
+                <Link href="/" className="flex items-center gap-3">
+                  <div className="relative w-8 h-8">
+                    <Image 
+                      src="/logo.svg" 
+                      alt="Techno Logo" 
+                      fill 
+                      className="object-contain"
+                    />
+                  </div>
+                  <span className="font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TECHNO</span>
+                </Link>
+                <button 
+                  onClick={() => setIsMobilePanelOpen(false)}
+                  className="text-white/40 hover:text-white cursor-pointer"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                {/* User Info */}
+                {session ? (
+                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <UserAvatar 
+                      image={session.user.image} 
+                      name={session.user.name} 
+                      className="w-12 h-12"
+                    />
+                    <div className="overflow-hidden">
+                      <p className="font-black text-white truncate pr-2">{session.user.name}</p>
+                      <p className="text-[10px] text-white/40 uppercase font-black pr-1">{session.user.role}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <Link href="/login" className="block p-4 bg-sunset rounded-2xl text-center font-black uppercase tracking-widest text-sm text-white">
+                    Connexion
+                  </Link>
+                )}
+
+                {/* Main Nav */}
+                <nav className="space-y-2">
+                  <p className="px-4 text-[10px] uppercase font-black text-white/30 tracking-widest">Navigation</p>
+                  {navLinks.map((link) => (
+                    <Link 
+                      key={link.href} 
+                      href={link.href}
+                      className={cn(
+                        "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
+                        pathname === link.href ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                      )}
+                    >
+                      <link.icon size={18} /> {link.label}
+                    </Link>
+                  ))}
+                  <Link 
+                    href={session ? `/profile/${session.user.id}` : "/login"}
+                    className={cn(
+                      "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
+                      pathname.startsWith("/profile") ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                    )}
+                  >
+                    <UserIcon size={18} /> Mon Profil
+                  </Link>
+                </nav>
+
+                {/* Admin Nav */}
+                {session?.user.role === "ADMIN" && (
+                  <nav className="space-y-2">
+                    <p className="px-4 text-[10px] uppercase font-black text-white/30 tracking-widest">Administration</p>
+                    {adminLinks.map((link) => (
+                      <Link 
+                        key={link.href} 
+                        href={link.href}
+                        className={cn(
+                          "flex items-center justify-between px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
+                          pathname === link.href ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                        )}
+                      >
+                        <div className="flex items-center gap-4">
+                            <link.icon size={18} /> {link.label}
+                        </div>
+                        {link.showBadge && renderBadge(pendingCount)}
+                      </Link>
+                    ))}
+                  </nav>
+                )}
+              </div>
+
+              {/* Logout at bottom */}
+              {session && (
+                <div className="p-4 border-t border-white/5">
+                  <button 
+                    onClick={() => signOut()}
+                    className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-xs cursor-pointer hover:bg-red-500/20 transition-colors"
+                  >
+                    <LogOut size={18} /> Déconnexion
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

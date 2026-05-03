@@ -60,3 +60,26 @@ export async function searchSpotifyArtists(query: string) {
     return [];
   }
 }
+
+export async function getSpotifyArtistDetails(spotifyId: string) {
+  const token = await getSpotifyAccessToken();
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/artists/${spotifyId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return {
+      genres: data.genres,
+      followers: data.followers.total,
+      popularity: data.popularity,
+    };
+  } catch (error) {
+    console.error("Spotify details error:", error);
+    return null;
+  }
+}
