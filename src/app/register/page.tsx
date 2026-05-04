@@ -134,7 +134,7 @@ export default function RegisterPage() {
                 name="email" 
                 type="email" 
                 required 
-                placeholder="rave@techno.com"
+                placeholder="rave@technodex.com"
                 className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white focus:border-sunset-orange focus:ring-4 focus:ring-sunset-orange/10 transition-all outline-none placeholder:text-white/10"
                 />
             </div>

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import fs from "fs/promises";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +21,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cet email est déjà utilisé" }, { status: 400 });
     }
 
+    let imagePath = null;
+
+    // Handle image saving if provided as base64
+    if (image && image.startsWith("data:image")) {
+      try {
+        const base64Data = image.split(",")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        
+        // Extract extension
+        const mimeType = image.split(";")[0].split(":")[1];
+        const extension = mimeType.split("/")[1] || "png";
+        
+        const filename = `${uuidv4()}.${extension}`;
+        const relativePath = `/uploads/avatars/${filename}`;
+        const absolutePath = path.join(process.cwd(), "public", "uploads", "avatars", filename);
+        
+        await fs.writeFile(absolutePath, buffer);
+        imagePath = relativePath;
+      } catch (uploadError) {
+        console.error("Error saving image:", uploadError);
+        // Continue without image if saving fails
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -25,8 +52,7 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
-        image: image || null,
-        // isApproved is false by default in schema
+        image: imagePath,
       },
     });
 

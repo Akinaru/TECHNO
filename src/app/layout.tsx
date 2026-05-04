@@ -9,8 +9,8 @@ import { authOptions } from "@/lib/auth";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Techno Tracker",
-  description: "Track the techno artists you've seen",
+  title: "TechnoDex",
+  description: "Garde une trace des DJs vus en teuf avec TechnoDex",
   manifest: "/manifest.json",
 };
 

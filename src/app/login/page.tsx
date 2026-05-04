@@ -43,7 +43,7 @@ export default function LoginPage() {
         className="w-full max-w-md bg-white/5 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl"
       >
         <h1 className="text-4xl font-black mb-2 text-sunset text-center">CONNEXION</h1>
-        <p className="text-center text-white/50 mb-8">Accède à ton tracker techno</p>
+        <p className="text-center text-white/50 mb-8">Accède à ton TechnoDex</p>
 
         {error && (
           <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm mb-6 border border-red-500/50">

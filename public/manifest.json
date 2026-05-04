@@ -1,7 +1,7 @@
 {
-  "name": "Techno Tracker",
-  "short_name": "Techno Tracker",
-  "description": "Garde une trace des DJs techno que tu as vu et de ceux de tes potes.",
+  "name": "TechnoDex",
+  "short_name": "TechnoDex",
+  "description": "Garde une trace des DJs vus en teuf avec TechnoDex.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

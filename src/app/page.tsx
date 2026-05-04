@@ -11,7 +11,7 @@ export default async function Home() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
         <h1 className="text-6xl md:text-8xl font-black mb-4 tracking-tighter text-sunset italic pr-4">
-          TECHNO<br />TRACKER
+          TECHNODEX
         </h1>
         <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl font-bold italic uppercase tracking-tighter pr-2">
           Garde une trace de tous les DJs que tu as vu en teuf.

@@ -2,7 +2,7 @@ version: "3.3"
 services:
   db:
     image: mariadb:10.4
-    container_name: db_docker_techno
+    container_name: db_docker_technodex
     volumes:
       - db-data:/var/lib/mysql
       - ./docker/db:/var/db
@@ -15,7 +15,7 @@ services:
       - "3309:3306"
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin_docker_techno
+    container_name: phpmyadmin_docker_technodex
     depends_on:
       - db
     ports:
@@ -28,7 +28,7 @@ services:
 
   maildev:
     image: maildev/maildev
-    container_name: maildev_docker_techno
+    container_name: maildev_docker_technodex
     command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
     ports:
       - "82:80"
@@ -38,7 +38,7 @@ services:
 
   www:
     build: ./docker/php
-    container_name: www_docker_techno
+    container_name: www_docker_technodex
     ports:
       - "80:80"
     volumes:

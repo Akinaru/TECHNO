@@ -117,12 +117,12 @@ export function Navbar() {
               <div className="relative w-8 h-8 group-hover:rotate-12 transition-transform duration-500">
                 <Image 
                   src="/logo.svg" 
-                  alt="Techno Logo" 
+                  alt="TechnoDex Logo" 
                   fill 
                   className="object-contain"
                 />
               </div>
-              <span className="hidden sm:block font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TECHNO</span>
+              <span className="hidden sm:block font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TechnoDex</span>
             </Link>
           </div>
 
@@ -257,12 +257,12 @@ export function Navbar() {
                   <div className="relative w-8 h-8">
                     <Image 
                       src="/logo.svg" 
-                      alt="Techno Logo" 
+                      alt="TechnoDex Logo" 
                       fill 
                       className="object-contain"
                     />
                   </div>
-                  <span className="font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TECHNO</span>
+                  <span className="font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TechnoDex</span>
                 </Link>
                 <button 
                   onClick={() => setIsMobilePanelOpen(false)}
