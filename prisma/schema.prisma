@@ -7,44 +7,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  password      String
-  image         String?
-  role          String    @default("USER") // USER, ADMIN
-  isApproved    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  artists       ArtistSeen[]
-}
-
 model Artist {
-  id          String    @id @default(cuid())
-  spotifyId   String?   @unique
-  name        String    @unique
-  image       String?
-  seenBy      ArtistSeen[]
+  id         String       @id
+  spotifyId  String?      @unique
+  name       String       @unique
+  image      String?
+  ArtistSeen ArtistSeen[]
 }
 
 model ArtistSeen {
-  id        String   @id @default(cuid())
+  id        String   @id
   userId    String
   artistId  String
   times     Int      @default(1)
   notes     String?  @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  updatedAt DateTime
+  Artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, artistId])
+  @@index([artistId], map: "ArtistSeen_artistId_fkey")
 }
 
 model Option {
-  id    String @id @default(cuid())
+  id    String @id
   key   String @unique
   value String @db.Text
+}
+
+model User {
+  id         String       @id
+  name       String?
+  email      String?      @unique
+  password   String
+  image      String?
+  role       String       @default("USER")
+  isApproved Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime
+  ArtistSeen ArtistSeen[]
 }

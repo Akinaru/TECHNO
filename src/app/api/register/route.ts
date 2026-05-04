@@ -37,6 +37,9 @@ export async function POST(req: Request) {
         const relativePath = `/uploads/avatars/${filename}`;
         const absolutePath = path.join(process.cwd(), "public", "uploads", "avatars", filename);
         
+        // Ensure directory exists
+        await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+        
         await fs.writeFile(absolutePath, buffer);
         imagePath = relativePath;
       } catch (uploadError) {
