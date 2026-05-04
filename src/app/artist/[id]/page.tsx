@@ -33,7 +33,13 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
         
         <div className="relative w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 rounded-3xl overflow-hidden shrink-0 shadow-[0_0_50px_rgba(112,0,255,0.3)] border border-white/10">
           {artist.image ? (
-            <Image src={artist.image} alt={artist.name} fill className="object-cover" />
+            <Image 
+              src={artist.image} 
+              alt={artist.name} 
+              fill 
+              className="object-cover" 
+              sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 256px"
+            />
           ) : (
             <div className="w-full h-full bg-black/50 flex items-center justify-center text-4xl sm:text-6xl">🎵</div>
           )}

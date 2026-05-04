@@ -116,6 +116,7 @@ export function ProfileArtistList({ initialArtists }: ProfileArtistListProps) {
                           alt={item.artist.name} 
                           fill
                           className="object-cover opacity-60 group-hover:opacity-100 transition-opacity group-hover:scale-110 duration-500"
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/20">
