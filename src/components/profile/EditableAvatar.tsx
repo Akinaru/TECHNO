@@ -48,7 +48,7 @@ export function EditableAvatar({ image, name, userId, isOwnProfile }: EditableAv
       <UserAvatar 
         image={image} 
         name={name} 
-        className="w-32 h-32 text-5xl shadow-[0_0_50px_rgba(112,0,255,0.3)] transition-opacity group-hover:opacity-75"
+        className="w-24 h-24 sm:w-32 sm:h-32 text-3xl sm:text-5xl shadow-[0_0_50px_rgba(112,0,255,0.3)] transition-opacity group-hover:opacity-75"
       />
       
       {isOwnProfile && (

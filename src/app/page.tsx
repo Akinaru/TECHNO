@@ -10,13 +10,13 @@ export default async function Home() {
   if (!session) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-6xl md:text-8xl font-black mb-4 tracking-tighter text-sunset italic pr-4">
+        <h1 className="text-5xl md:text-8xl font-black mb-4 tracking-tighter text-sunset italic pr-4">
           TECHNODEX
         </h1>
-        <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl font-bold italic uppercase tracking-tighter pr-2">
+        <p className="text-lg md:text-2xl text-white/70 mb-12 max-w-2xl font-bold italic uppercase tracking-tighter pr-2">
           Garde une trace de tous les DJs que tu as vu en teuf.
         </p>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/login" className="bg-white text-black px-8 py-3 rounded-full font-black hover:scale-105 transition-transform uppercase tracking-widest text-sm">
             CONNEXION
           </Link>
@@ -32,7 +32,29 @@ export default async function Home() {
     where: { id: session.user.id },
     include: {
       artists: {
-        include: { artist: true },
+        include: { 
+          artist: {
+            include: {
+              seenBy: {
+                where: {
+                  NOT: {
+                    userId: session.user.id
+                  }
+                },
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      image: true
+                    }
+                  }
+                },
+                take: 6
+              }
+            }
+          }
+        },
         orderBy: { artist: { name: 'asc' } }
       }
     }
@@ -41,17 +63,17 @@ export default async function Home() {
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-12">
-      <div className="flex items-center justify-between mb-12">
+    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-8 md:pt-12">
+      <div className="flex items-center justify-between mb-8 md:mb-12">
         <div>
-          <h1 className="text-5xl font-black mb-2 text-sunset uppercase tracking-tighter italic pr-4">MON PALMARÈS</h1>
-          <p className="text-white/60 font-black uppercase tracking-widest text-sm italic pr-2">
+          <h1 className="text-3xl sm:text-5xl font-black mb-2 text-sunset uppercase tracking-tighter italic pr-4">MON PALMARÈS</h1>
+          <p className="text-white/60 font-black uppercase tracking-widest text-xs sm:text-sm italic pr-2">
             Tu as vu <span className="text-sunset-orange">{user.artists.length}</span> artistes différents.
           </p>
         </div>
       </div>
 
-      <ProfileArtistList initialArtists={user.artists} />
+      <ProfileArtistList initialArtists={user.artists as any} />
     </div>
   );
 }

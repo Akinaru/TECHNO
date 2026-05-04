@@ -26,22 +26,22 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
   const spotifyDetails = artist.spotifyId ? await getSpotifyArtistDetails(artist.spotifyId) : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-12">
-      <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-12 bg-white/5 p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
+    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-8 md:pt-12">
+      <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-12 bg-white/5 p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
         {/* Background decorative gradient */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-sunset/10 blur-[100px] -z-10 group-hover:bg-sunset/20 transition-all duration-1000" />
         
-        <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-3xl overflow-hidden shrink-0 shadow-[0_0_50px_rgba(112,0,255,0.3)] border border-white/10">
+        <div className="relative w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 rounded-3xl overflow-hidden shrink-0 shadow-[0_0_50px_rgba(112,0,255,0.3)] border border-white/10">
           {artist.image ? (
             <Image src={artist.image} alt={artist.name} fill className="object-cover" />
           ) : (
-            <div className="w-full h-full bg-black/50 flex items-center justify-center text-6xl">🎵</div>
+            <div className="w-full h-full bg-black/50 flex items-center justify-center text-4xl sm:text-6xl">🎵</div>
           )}
         </div>
         
-        <div className="text-center md:text-left flex-1 space-y-6">
+        <div className="text-center md:text-left flex-1 space-y-6 overflow-hidden w-full">
           <div>
-            <h1 className="text-5xl md:text-7xl font-black mb-4 text-sunset leading-tight uppercase tracking-tighter italic pr-6">{artist.name}</h1>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-4 text-sunset leading-tight uppercase tracking-tighter italic pr-6 break-words">{artist.name}</h1>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                 <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/5">
                     <span className="font-black text-sunset-orange pr-1">{artist.seenBy.length}</span>
