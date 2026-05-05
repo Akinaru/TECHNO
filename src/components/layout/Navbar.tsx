@@ -21,6 +21,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { getPendingUserCountAction } from "@/app/actions/admin";
+import { InstallPWA } from "@/components/InstallPWA";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -139,6 +140,9 @@ export function Navbar() {
 
           {/* RIGHT: DESKTOP NAV & PROFILE */}
           <div className="flex justify-end items-center gap-6">
+            <div className="hidden lg:block">
+              <InstallPWA />
+            </div>
             <nav className="hidden md:flex items-center gap-4">
               {navLinks.map((link) => (
                 <Link 
@@ -273,6 +277,9 @@ export function Navbar() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                <div className="px-2">
+                  <InstallPWA />
+                </div>
                 {/* User Info */}
                 {session ? (
                   <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">

@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: "TechnoDex",
   description: "Garde une trace des DJs vus en teuf avec TechnoDex",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TechnoDex",
+  },
 };
 
 export default async function RootLayout({
