@@ -81,8 +81,8 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-12 md:pt-16 pb-32">
-      <h1 className="text-5xl md:text-7xl font-black mb-12 text-sunset text-center uppercase tracking-tighter italic pr-4 underline decoration-sunset-purple decoration-8 underline-offset-12">TROUVER UN DJ</h1>
+    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-8 md:pt-16 pb-32">
+      <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-8 md:mb-12 text-sunset text-center uppercase tracking-tighter italic pr-4 underline decoration-sunset-purple decoration-4 md:decoration-8 underline-offset-8 md:underline-offset-12">TROUVER UN DJ</h1>
       
       {/* Alert Success */}
       <AnimatePresence>
@@ -99,16 +99,16 @@ export default function SearchPage() {
         )}
       </AnimatePresence>
 
-      <div className="relative mb-24 group max-w-2xl mx-auto">
-        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-white/20 group-focus-within:text-sunset-orange transition-colors">
-          <Search size={24} strokeWidth={3} />
+      <div className="relative mb-12 md:mb-24 group max-w-2xl mx-auto">
+        <div className="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none text-white/20 group-focus-within:text-sunset-orange transition-colors">
+          <Search size={20} strokeWidth={3} />
         </div>
         <input
           type="text"
           placeholder="Holy Priest, Lil Texas..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full bg-white/5 border-b-2 border-white/10 py-8 pl-16 pr-6 text-2xl font-black uppercase tracking-tighter focus:border-sunset-orange outline-none transition-all placeholder:text-white/10 italic"
+          className="w-full bg-white/5 border-b-2 border-white/10 py-4 md:py-8 pl-12 md:pl-16 pr-4 md:pr-6 text-lg md:text-2xl font-black uppercase tracking-tighter focus:border-sunset-orange outline-none transition-all placeholder:text-white/10 italic"
         />
         {loading && (
           <div className="absolute inset-y-0 right-0 pr-6 flex items-center pointer-events-none">
@@ -127,27 +127,27 @@ export default function SearchPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                     {results.map((artist) => (
-                        <div key={artist.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/[0.03] transition-all group">
-                            <div className="flex items-center gap-6">
-                                <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/5 shadow-xl transition-transform group-hover:scale-105">
+                        <div key={artist.id} className="flex items-center justify-between p-2 md:p-3 rounded-2xl hover:bg-white/[0.03] transition-all group">
+                            <div className="flex items-center gap-3 md:gap-6">
+                                <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/5 shadow-xl transition-transform group-hover:scale-105">
                                     {artist.image ? (
                                     <Image src={artist.image} alt={artist.name} fill className="object-cover" />
                                     ) : (
-                                    <span className="absolute inset-0 flex items-center justify-center text-2xl">🎵</span>
+                                    <span className="absolute inset-0 flex items-center justify-center text-xl">🎵</span>
                                     )}
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="font-black text-2xl tracking-tighter group-hover:text-sunset-orange transition-colors pr-4 italic uppercase leading-none">{artist.name}</h3>
+                                    <h3 className="font-black text-lg md:text-2xl tracking-tighter group-hover:text-sunset-orange transition-colors pr-4 italic uppercase leading-none truncate max-w-[150px] sm:max-w-none">{artist.name}</h3>
                                     <div className="flex flex-wrap items-center gap-x-3">
                                         {Number(artist.fanCount) > 0 && (
-                                            <p className="text-xs font-black text-white/40 uppercase tracking-[0.2em] italic pr-1">
+                                            <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.2em] italic pr-1">
                                                 Vu par <span className="text-sunset-purple">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "ravers" : "raver"}
                                             </p>
                                         )}
                                         {Number(artist.personalCount) > 0 && (
                                             <>
                                                 <div className="w-1 h-1 bg-white/10 rounded-full" />
-                                                <p className="text-xs font-black text-sunset-orange uppercase tracking-[0.2em] italic pr-2">
+                                                <p className="text-[10px] md:text-xs font-black text-sunset-orange uppercase tracking-[0.2em] italic pr-2">
                                                     dont toi <span className="text-white font-black">{artist.personalCount}</span> fois
                                                 </p>
                                             </>
@@ -159,14 +159,14 @@ export default function SearchPage() {
                             <button
                                 onClick={() => handleAdd(artist)}
                                 disabled={addingId === artist.id}
-                                className={`px-5 py-3 rounded-xl flex items-center gap-2 transition-all font-black uppercase text-[10px] tracking-widest cursor-pointer ${
+                                className={`px-3 md:px-5 py-2 md:py-3 rounded-xl flex items-center gap-2 transition-all font-black uppercase text-[9px] md:text-[10px] tracking-widest cursor-pointer ${
                                     addingId === artist.id 
                                     ? "bg-white text-black scale-95" 
                                     : "bg-white/5 hover:bg-sunset text-white border border-white/5"
                                 }`}
                             >
-                                {addingId === artist.id ? <Check size={16} /> : <Plus size={16} />}
-                                <span className="hidden sm:block">{addingId === artist.id ? "Ajouté" : "Je l'ai vu"}</span>
+                                {addingId === artist.id ? <Check size={14} /> : <Plus size={14} />}
+                                <span>{addingId === artist.id ? "Ajouté" : "Je l'ai vu"}</span>
                             </button>
                         </div>
                     ))}
@@ -183,25 +183,25 @@ export default function SearchPage() {
                     <div className="h-px bg-white/5 flex-1" />
                 </div>
                 
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6 md:gap-8">
                     {trending.map((artist) => (
                         <div key={artist.id} className="flex items-center justify-between group">
-                            <div className="flex items-center gap-8 sm:gap-12">
-                                <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden bg-white/5 shrink-0 transition-all duration-700 border border-white/5 group-hover:border-sunset-orange/50 shadow-2xl">
+                            <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
+                                <div className="relative w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl md:rounded-3xl overflow-hidden bg-white/5 shrink-0 transition-all duration-700 border border-white/5 group-hover:border-sunset-orange/50 shadow-2xl">
                                     {artist.image ? (
                                     <Image src={artist.image} alt={artist.name} fill className="object-cover transition-all duration-700 group-hover:scale-110" />
                                     ) : (
-                                    <span className="absolute inset-0 flex items-center justify-center text-5xl">🎵</span>
+                                    <span className="absolute inset-0 flex items-center justify-center text-3xl md:text-5xl">🎵</span>
                                     )}
                                 </div>
-                                <div className="space-y-3">
-                                    <h3 className="font-black text-4xl sm:text-6xl tracking-tighter pr-6 group-hover:text-sunset-orange transition-colors italic uppercase leading-[0.8]">{artist.name}</h3>
-                                    <div className="flex flex-col gap-1">
-                                        <p className="text-xs font-black text-white/40 uppercase tracking-[0.3em] italic pr-2">
+                                <div className="space-y-2 md:space-y-3">
+                                    <h3 className="font-black text-2xl sm:text-4xl md:text-6xl tracking-tighter pr-4 group-hover:text-sunset-orange transition-colors italic uppercase leading-[0.8]">{artist.name}</h3>
+                                    <div className="flex flex-col gap-0.5 md:gap-1">
+                                        <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.3em] italic pr-2">
                                             <span className="text-sunset-purple font-black">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "Ravers l'ont vu" : "Raver l'a vu"}
                                         </p>
                                         {Number(artist.personalCount) > 0 && (
-                                            <p className="text-xs font-black text-sunset-orange uppercase tracking-[0.3em] italic pr-2">
+                                            <p className="text-[10px] md:text-xs font-black text-sunset-orange uppercase tracking-[0.3em] italic pr-2">
                                                 dont toi <span className="text-white font-black">{artist.personalCount}</span> fois
                                             </p>
                                         )}
@@ -212,14 +212,14 @@ export default function SearchPage() {
                             <button
                                 onClick={() => handleAdd(artist)}
                                 disabled={addingId === artist.id}
-                                className={`px-10 py-6 rounded-2xl flex items-center gap-3 transition-all font-black uppercase text-xs tracking-[0.3em] cursor-pointer shadow-2xl border border-white/5 ${
+                                className={`px-4 md:px-10 py-3 md:py-6 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 transition-all font-black uppercase text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] cursor-pointer shadow-2xl border border-white/5 ${
                                     addingId === artist.id 
                                     ? "bg-white text-black scale-95" 
                                     : "bg-white/5 hover:bg-sunset text-white hover:border-sunset-orange hover:-translate-y-1"
                                 }`}
                             >
-                                {addingId === artist.id ? <Check size={24} /> : <Plus size={24} />}
-                                <span className="hidden md:block">{addingId === artist.id ? "DÉJÀ VU" : "JE L'AI VU"}</span>
+                                {addingId === artist.id ? <Check size={16} /> : <Plus size={16} />}
+                                <span className="hidden xs:block">{addingId === artist.id ? "VU" : "VU !"}</span>
                             </button>
                         </div>
                     ))}

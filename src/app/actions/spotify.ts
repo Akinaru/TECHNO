@@ -108,6 +108,59 @@ export async function addArtistAction(spotifyId: string, name: string, image: st
   return { success: true };
 }
 
+export async function updateArtistCountAction(artistId: string, increment: boolean) {
+  const session = await getServerSession(authOptions);
+  if (!session) throw new Error("Non autorisé");
+
+  const existingLink = await prisma.artistSeen.findUnique({
+    where: {
+      userId_artistId: {
+        userId: session.user.id,
+        artistId: artistId
+      }
+    }
+  });
+
+  if (!existingLink) throw new Error("Record not found");
+
+  const newTimes = increment ? existingLink.times + 1 : Math.max(0, existingLink.times - 1);
+
+  if (newTimes === 0) {
+    await prisma.artistSeen.delete({
+      where: { id: existingLink.id }
+    });
+  } else {
+    await prisma.artistSeen.update({
+      where: { id: existingLink.id },
+      data: { times: newTimes }
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/search");
+  revalidatePath(`/artist/${artistId}`);
+  return { success: true };
+}
+
+export async function removeArtistAction(artistId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) throw new Error("Non autorisé");
+
+  await prisma.artistSeen.deleteMany({
+    where: {
+      userId: session.user.id,
+      artistId: artistId
+    }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/search");
+  revalidatePath(`/artist/${artistId}`);
+  return { success: true };
+}
+
 export async function getTrendingArtistsAction() {
   const session = await getServerSession(authOptions);
 

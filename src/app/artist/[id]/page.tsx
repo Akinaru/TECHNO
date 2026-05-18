@@ -4,9 +4,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { getSpotifyArtistDetails } from "@/lib/spotify";
+import { ArtistAction } from "@/components/artist/ArtistAction";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function ArtistPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await getServerSession(authOptions);
   
   const artist = await prisma.artist.findUnique({
     where: { id },
@@ -21,6 +25,8 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
   if (!artist) {
     notFound();
   }
+
+  const personalSeen = artist.seenBy.find(entry => entry.userId === session?.user?.id);
 
   // Optional: Fetch more info from Spotify if we have the ID
   const spotifyDetails = artist.spotifyId ? await getSpotifyArtistDetails(artist.spotifyId) : null;
@@ -72,11 +78,14 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          {spotifyDetails && (
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
-                {spotifyDetails.followers.toLocaleString()} abonnés sur Spotify
-            </p>
-          )}
+          <div className="pt-4 flex justify-center md:justify-start">
+            <ArtistAction 
+              artistId={artist.id}
+              artistName={artist.name}
+              artistImage={artist.image}
+              initialCount={personalSeen?.times || 0}
+            />
+          </div>
         </div>
       </div>
 

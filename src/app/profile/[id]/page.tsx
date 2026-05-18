@@ -64,7 +64,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <ProfileArtistList initialArtists={user.artists as any} />
+      <ProfileArtistList initialArtists={user.artists as any} isOwnProfile={isOwnProfile} />
     </div>
   );
 }

@@ -3,8 +3,9 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search } from "lucide-react";
+import { Search, Plus, Minus, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { updateArtistCountAction } from "@/app/actions/spotify";
 
 type ArtistSeen = {
   id: string;
@@ -25,12 +26,25 @@ type ArtistSeen = {
 
 interface ProfileArtistListProps {
   initialArtists: ArtistSeen[];
+  isOwnProfile?: boolean;
 }
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export function ProfileArtistList({ initialArtists }: ProfileArtistListProps) {
+export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtistListProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleUpdate = async (artistId: string, increment: boolean) => {
+    setLoadingId(artistId + (increment ? "-inc" : "-dec"));
+    try {
+      await updateArtistCountAction(artistId, increment);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   const { filteredAndGroupedArtists, missingLetters } = useMemo(() => {
     // Filter by search query
@@ -98,35 +112,56 @@ export function ProfileArtistList({ initialArtists }: ProfileArtistListProps) {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {artists.map((item) => (
                   <div key={item.id} className="space-y-2">
-                    <Link 
-                      href={`/artist/${item.artist.id}`} 
+                    <div 
                       className="group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-sunset-orange transition-all hover:scale-[1.02] block"
                     >
-                      <div className="absolute top-0 right-0 z-10">
-                        <div className="bg-sunset w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-bl-2xl shadow-xl border-l border-b border-white/20">
-                          <p className="text-base sm:text-lg font-black text-white leading-none italic">
+                      <Link href={`/artist/${item.artist.id}`} className="absolute inset-0 z-0">
+                        {item.artist.image ? (
+                          <Image 
+                            src={item.artist.image} 
+                            alt={item.artist.name} 
+                            fill
+                            className="object-cover opacity-60 group-hover:opacity-100 transition-opacity group-hover:scale-110 duration-500"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/20">
+                            <span className="text-3xl sm:text-4xl">🎵</span>
+                          </div>
+                        )}
+                      </Link>
+
+                      <div className="absolute top-0 right-0 z-10 flex flex-col">
+                        <div className="bg-sunset min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-bl-2xl shadow-xl border-l border-b border-white/20">
+                          <p className="text-base sm:text-lg font-black text-white leading-none italic pr-1">
                             {item.times}
                           </p>
                         </div>
+                        
+                        {isOwnProfile && (
+                          <div className="flex flex-col gap-1 mt-1 items-end pr-1">
+                            <button 
+                              onClick={() => handleUpdate(item.artist.id, true)}
+                              disabled={!!loadingId}
+                              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-sunset text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                            >
+                              {loadingId === item.artist.id + "-inc" ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                            </button>
+                            <button 
+                              onClick={() => handleUpdate(item.artist.id, false)}
+                              disabled={!!loadingId}
+                              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-red-500 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                            >
+                              {loadingId === item.artist.id + "-dec" ? <Loader2 size={14} className="animate-spin" /> : <Minus size={14} />}
+                            </button>
+                          </div>
+                        )}
                       </div>
                       
-                      {item.artist.image ? (
-                        <Image 
-                          src={item.artist.image} 
-                          alt={item.artist.name} 
-                          fill
-                          className="object-cover opacity-60 group-hover:opacity-100 transition-opacity group-hover:scale-110 duration-500"
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/20">
-                          <span className="text-3xl sm:text-4xl">🎵</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-3 sm:p-4">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-3 sm:p-4 pointer-events-none">
                         <h3 className="font-black text-sm sm:text-lg leading-tight group-hover:text-sunset-orange transition-colors truncate pr-2">{item.artist.name}</h3>
                       </div>
-                    </Link>
+                    </div>
 
                     {/* Social Avatars */}
                     {item.artist.seenBy && item.artist.seenBy.length > 0 && (
@@ -186,4 +221,3 @@ export function ProfileArtistList({ initialArtists }: ProfileArtistListProps) {
     </div>
   );
 }
-
