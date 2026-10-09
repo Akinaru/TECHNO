@@ -84,7 +84,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-white/50 mt-6">
           Pas encore de compte ?{" "}
           <Link href="/register" className="text-sunset-orange font-bold hover:underline">
-            S'inscrire
+            S&apos;inscrire
           </Link>
         </p>
       </motion.div>

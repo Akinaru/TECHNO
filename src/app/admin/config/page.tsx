@@ -1,12 +1,15 @@
 import { getOption, setOption } from "@/lib/options";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminConfigPage() {
+  await requireAdmin();
   const spotifyClientId = await getOption("spotify_client_id") || "";
   const spotifyClientSecret = await getOption("spotify_client_secret") || "";
 
   async function updateConfig(formData: FormData) {
     "use server";
+    await requireAdmin();
     const clientId = formData.get("clientId") as string;
     const clientSecret = formData.get("clientSecret") as string;
 

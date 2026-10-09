@@ -2,18 +2,16 @@
 
 import { useState } from "react";
 import { Plus, Minus, Check, Loader2 } from "lucide-react";
-import { addArtistAction, updateArtistCountAction } from "@/app/actions/spotify";
+import { seeArtistAction, updateArtistCountAction } from "@/app/actions/spotify";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 interface ArtistActionProps {
   artistId: string;
-  artistName: string;
-  artistImage: string | null;
   initialCount: number;
 }
 
-export function ArtistAction({ artistId, artistName, artistImage, initialCount }: ArtistActionProps) {
+export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -26,8 +24,9 @@ export function ArtistAction({ artistId, artistName, artistImage, initialCount }
     }
     setLoading(true);
     try {
-      await addArtistAction(artistId, artistName, artistImage);
-      setCount(prev => prev + 1);
+      const result = await seeArtistAction(artistId);
+      setCount(result.times);
+      router.refresh();
     } catch (error) {
       console.error(error);
     } finally {
@@ -38,8 +37,9 @@ export function ArtistAction({ artistId, artistName, artistImage, initialCount }
   const handleUpdate = async (increment: boolean) => {
     setLoading(true);
     try {
-      await updateArtistCountAction(artistId, increment);
-      setCount(prev => increment ? prev + 1 : Math.max(0, prev - 1));
+      const result = await updateArtistCountAction(artistId, increment);
+      setCount(result.times);
+      router.refresh();
     } catch (error) {
       console.error(error);
     } finally {
@@ -59,7 +59,7 @@ export function ArtistAction({ artistId, artistName, artistImage, initialCount }
         ) : (
           <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
         )}
-        <span>Je l'ai vu !</span>
+        <span>Je l&apos;ai vu !</span>
       </button>
     );
   }
@@ -72,6 +72,7 @@ export function ArtistAction({ artistId, artistName, artistImage, initialCount }
           disabled={loading}
           className="p-4 hover:bg-white/5 text-white/50 hover:text-white transition-colors border-r border-white/10"
           title="Diminuer"
+          aria-label="Diminuer"
         >
           <Minus size={20} />
         </button>
@@ -86,6 +87,7 @@ export function ArtistAction({ artistId, artistName, artistImage, initialCount }
           disabled={loading}
           className="p-4 hover:bg-white/5 text-white/50 hover:text-white transition-colors border-l border-white/10"
           title="Augmenter"
+          aria-label="Augmenter"
         >
           <Plus size={20} />
         </button>

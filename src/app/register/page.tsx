@@ -5,32 +5,27 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Upload, X, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { resizeImageToSquare } from "@/lib/resizeImage";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [base64Image, setBase64Image] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<{ file: File; preview: string } | null>(null);
 
-  const MAX_FILE_SIZE = 1024 * 1024; // 1MB
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_FILE_SIZE) {
-      setError("Le fichier est trop volumineux (max 1Mo)");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setBase64Image(reader.result as string);
+    try {
+      const resized = await resizeImageToSquare(file);
+      if (avatar) URL.revokeObjectURL(avatar.preview);
+      setAvatar({ file: resized, preview: URL.createObjectURL(resized) });
       setError("");
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image invalide");
+    }
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -40,18 +35,14 @@ export default function RegisterPage() {
     setSuccess("");
 
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    
-    // Add base64 image if exists
-    if (base64Image) {
-      data.image = base64Image;
+    if (avatar) {
+      formData.append("image", avatar.file);
     }
 
     try {
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: formData,
       });
 
       const json = await res.json();
@@ -62,8 +53,8 @@ export default function RegisterPage() {
 
       setSuccess(json.message);
       setTimeout(() => router.push("/login"), 3000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -97,8 +88,9 @@ export default function RegisterPage() {
           <div className="flex flex-col items-center gap-4">
              <div className="relative w-24 h-24 group">
                 <div className="w-full h-full rounded-2xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center overflow-hidden transition-colors group-hover:border-sunset-orange">
-                    {base64Image ? (
-                        <Image src={base64Image} alt="Preview" fill className="object-cover" />
+                    {avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatar.preview} alt="Aperçu" className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                         <>
                             <Upload className="text-white/20 mb-1" size={24} />
@@ -110,10 +102,11 @@ export default function RegisterPage() {
                     type="file" 
                     accept="image/*"
                     onChange={handleFileChange}
+                    aria-label="Photo de profil"
                     className="absolute inset-0 opacity-0 cursor-pointer"
                 />
              </div>
-             <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Clique pour uploader (max 1Mo)</p>
+             <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Clique pour ajouter une photo</p>
           </div>
 
           <div className="space-y-4">
@@ -123,6 +116,7 @@ export default function RegisterPage() {
                 name="name" 
                 type="text" 
                 required 
+                maxLength={40}
                 placeholder="Ton nom de raver"
                 className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white focus:border-sunset-orange focus:ring-4 focus:ring-sunset-orange/10 transition-all outline-none placeholder:text-white/10"
                 />
@@ -145,6 +139,8 @@ export default function RegisterPage() {
                 name="password" 
                 type="password" 
                 required 
+                minLength={8}
+                autoComplete="new-password"
                 placeholder="••••••••"
                 className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white focus:border-sunset-orange focus:ring-4 focus:ring-sunset-orange/10 transition-all outline-none placeholder:text-white/10"
                 />

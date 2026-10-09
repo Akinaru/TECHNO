@@ -1,4 +1,5 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, getServerSession } from "next-auth";
+import { notFound, redirect } from "next/navigation";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
@@ -17,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email.trim().toLowerCase() }
         });
 
         if (!user || !user.password) {
@@ -45,10 +46,22 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+      }
+      // Client calls useSession().update() after a profile change: reload fresh values
+      if (trigger === "update" && token.id) {
+        const fresh = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { name: true, image: true, role: true },
+        });
+        if (fresh) {
+          token.name = fresh.name;
+          token.picture = fresh.image;
+          token.role = fresh.role;
+        }
       }
       return token;
     },
@@ -68,3 +81,20 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+export async function requireUser() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+  return session;
+}
+
+// Hides admin pages and rejects admin server actions for everyone else
+export async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role !== "ADMIN") {
+    notFound();
+  }
+  return session;
+}

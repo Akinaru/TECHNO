@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { searchAction, addArtistAction, getTrendingArtistsAction } from "@/app/actions/spotify";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { Search, Plus, Check, AlertCircle, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { Search, Plus, Check, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,6 +13,7 @@ type Artist = {
   id: string;
   name: string;
   image: string | null;
+  localId?: string;
   fanCount?: number;
   personalCount?: number;
 };
@@ -106,6 +108,8 @@ export default function SearchPage() {
         <input
           type="text"
           placeholder="Holy Priest, Lil Texas..."
+          aria-label="Rechercher un DJ"
+          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full bg-white/5 border-b-2 border-white/10 py-4 md:py-8 pl-12 md:pl-16 pr-4 md:pr-6 text-lg md:text-2xl font-black uppercase tracking-tighter focus:border-sunset-orange outline-none transition-all placeholder:text-white/10 italic"
@@ -126,18 +130,23 @@ export default function SearchPage() {
                     <div className="h-px bg-white/5 flex-1" />
                 </div>
                 <div className="flex flex-col gap-2">
+                    {!loading && results.length === 0 && (
+                        <p className="text-center text-white/40 italic py-8">Aucun DJ trouvé. Vérifie l&apos;orthographe ?</p>
+                    )}
                     {results.map((artist) => (
                         <div key={artist.id} className="flex items-center justify-between p-2 md:p-3 rounded-2xl hover:bg-white/[0.03] transition-all group">
                             <div className="flex items-center gap-3 md:gap-6">
                                 <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/5 shadow-xl transition-transform group-hover:scale-105">
                                     {artist.image ? (
-                                    <Image src={artist.image} alt={artist.name} fill className="object-cover" />
+                                    <Image src={artist.image} alt={artist.name} fill sizes="64px" className="object-cover" />
                                     ) : (
                                     <span className="absolute inset-0 flex items-center justify-center text-xl">🎵</span>
                                     )}
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="font-black text-lg md:text-2xl tracking-tighter group-hover:text-sunset-orange transition-colors pr-4 italic uppercase leading-none truncate max-w-[150px] sm:max-w-none">{artist.name}</h3>
+                                    <h3 className="font-black text-lg md:text-2xl tracking-tighter group-hover:text-sunset-orange transition-colors pr-4 italic uppercase leading-none truncate max-w-[150px] sm:max-w-none">
+                                        {artist.localId ? <Link href={`/artist/${artist.localId}`} className="hover:underline">{artist.name}</Link> : artist.name}
+                                    </h3>
                                     <div className="flex flex-wrap items-center gap-x-3">
                                         {Number(artist.fanCount) > 0 && (
                                             <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.2em] italic pr-1">
@@ -189,13 +198,15 @@ export default function SearchPage() {
                             <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
                                 <div className="relative w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl md:rounded-3xl overflow-hidden bg-white/5 shrink-0 transition-all duration-700 border border-white/5 group-hover:border-sunset-orange/50 shadow-2xl">
                                     {artist.image ? (
-                                    <Image src={artist.image} alt={artist.name} fill className="object-cover transition-all duration-700 group-hover:scale-110" />
+                                    <Image src={artist.image} alt={artist.name} fill sizes="160px" className="object-cover transition-all duration-700 group-hover:scale-110" />
                                     ) : (
                                     <span className="absolute inset-0 flex items-center justify-center text-3xl md:text-5xl">🎵</span>
                                     )}
                                 </div>
                                 <div className="space-y-2 md:space-y-3">
-                                    <h3 className="font-black text-2xl sm:text-4xl md:text-6xl tracking-tighter pr-4 group-hover:text-sunset-orange transition-colors italic uppercase leading-[0.8]">{artist.name}</h3>
+                                    <h3 className="font-black text-2xl sm:text-4xl md:text-6xl tracking-tighter pr-4 group-hover:text-sunset-orange transition-colors italic uppercase leading-[0.8]">
+                                        <Link href={`/artist/${artist.localId}`}>{artist.name}</Link>
+                                    </h3>
                                     <div className="flex flex-col gap-0.5 md:gap-1">
                                         <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.3em] italic pr-2">
                                             <span className="text-sunset-purple font-black">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "Ravers l'ont vu" : "Raver l'a vu"}

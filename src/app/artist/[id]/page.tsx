@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { getSpotifyArtistDetails } from "@/lib/spotify";
 import { ArtistAction } from "@/components/artist/ArtistAction";
+import { ArtistNotes } from "@/components/artist/ArtistNotes";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -16,7 +17,8 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
     where: { id },
     include: {
       seenBy: {
-        include: { user: true },
+        where: { user: { isApproved: true } },
+        include: { user: { select: { id: true, name: true, image: true } } },
         orderBy: { times: 'desc' }
       }
     }
@@ -59,7 +61,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
                     <span className="font-black text-sunset-orange pr-1">{artist.seenBy.length}</span>
                     <span className="text-white/50 text-[10px] uppercase font-black tracking-widest">Fans sur le site</span>
                 </div>
-                {spotifyDetails && (
+                {spotifyDetails?.popularity != null && (
                     <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/5">
                         <span className="font-black text-sunset-purple pr-1">{spotifyDetails.popularity}%</span>
                         <span className="text-white/50 text-[10px] uppercase font-black tracking-widest">Popularité Spotify</span>
@@ -81,31 +83,37 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
           <div className="pt-4 flex justify-center md:justify-start">
             <ArtistAction 
               artistId={artist.id}
-              artistName={artist.name}
-              artistImage={artist.image}
               initialCount={personalSeen?.times || 0}
             />
           </div>
         </div>
       </div>
 
-      <h2 className="text-2xl font-black mb-6 border-b border-white/10 pb-4 tracking-tighter uppercase italic pr-2">ILS L'ONT VU :</h2>
+      {personalSeen && <ArtistNotes artistId={artist.id} initialNotes={personalSeen.notes} />}
+
+      <h2 className="text-2xl font-black mb-6 border-b border-white/10 pb-4 tracking-tighter uppercase italic pr-2">ILS L&apos;ONT VU :</h2>
       
       <div className="grid gap-4">
         {artist.seenBy.map((entry) => (
           <Link href={`/profile/${entry.user.id}`} key={entry.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/10 group">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <UserAvatar 
                 image={entry.user.image} 
                 name={entry.user.name} 
                 className="w-12 h-12 text-xl"
               />
-              <div>
-                <p className="font-bold text-lg group-hover:text-sunset-orange transition-colors pr-2">{entry.user.name}</p>
+              <div className="min-w-0">
+                <p className="font-bold text-lg group-hover:text-sunset-orange transition-colors pr-2">
+                  {entry.user.name}
+                  {entry.userId === session?.user?.id && <span className="text-white/40 text-sm"> (toi)</span>}
+                </p>
+                {entry.notes && (
+                  <p className="text-sm text-white/60 italic line-clamp-2 pr-2">&ldquo;{entry.notes}&rdquo;</p>
+                )}
               </div>
             </div>
             
-            <div className="bg-sunset w-12 h-12 flex items-center justify-center rounded-xl shadow-lg border border-white/20">
+            <div className="bg-sunset w-12 h-12 shrink-0 flex items-center justify-center rounded-xl shadow-lg border border-white/20">
               <p className="text-xl font-black text-white leading-none italic pr-1">
                 {entry.times}
               </p>

@@ -18,6 +18,16 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   artists       ArtistSeen[]
+  avatar        Avatar?
+}
+
+// Avatars live in the database so they survive container redeploys
+model Avatar {
+  userId    String   @id
+  data      Bytes    @db.MediumBlob
+  mimeType  String
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Artist {
@@ -41,6 +51,7 @@ model ArtistSeen {
   artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([userId, artistId])
+  @@index([updatedAt])
 }
 
 model Option {

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Search, Plus, Minus, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { updateArtistCountAction } from "@/app/actions/spotify";
@@ -10,6 +11,7 @@ import { updateArtistCountAction } from "@/app/actions/spotify";
 type ArtistSeen = {
   id: string;
   times: number;
+  updatedAt: Date;
   artist: {
     id: string;
     name: string;
@@ -29,16 +31,27 @@ interface ProfileArtistListProps {
   isOwnProfile?: boolean;
 }
 
+type SortMode = "alpha" | "times" | "recent";
+
+const SORT_MODES: { value: SortMode; label: string }[] = [
+  { value: "alpha", label: "A-Z" },
+  { value: "times", label: "Les + vus" },
+  { value: "recent", label: "Récents" },
+];
+
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtistListProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("alpha");
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const handleUpdate = async (artistId: string, increment: boolean) => {
     setLoadingId(artistId + (increment ? "-inc" : "-dec"));
     try {
       await updateArtistCountAction(artistId, increment);
+      router.refresh();
     } catch (error) {
       console.error(error);
     } finally {
@@ -51,6 +64,19 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
     const filtered = initialArtists.filter((item) =>
       item.artist.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // Non alphabetical sorts are a single flat list
+    if (sortMode !== "alpha") {
+      const sorted = [...filtered].sort((a, b) =>
+        sortMode === "times"
+          ? b.times - a.times || a.artist.name.localeCompare(b.artist.name)
+          : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+      return {
+        filteredAndGroupedArtists: sorted.length ? [["", sorted]] as [string, ArtistSeen[]][] : [],
+        missingLetters: [],
+      };
+    }
 
     // Group by initial
     const groups: Record<string, ArtistSeen[]> = {};
@@ -78,36 +104,64 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
       filteredAndGroupedArtists: Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)),
       missingLetters: missing
     };
-  }, [initialArtists, searchQuery]);
+  }, [initialArtists, searchQuery, sortMode]);
 
   return (
     <div className="space-y-8">
-      {/* Search Bar */}
-      <div className="relative max-w-md mx-auto sm:mx-0">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-white/30" />
+      {/* Search Bar + Sort */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-white/30" />
+          </div>
+          <input
+            type="text"
+            placeholder="Rechercher un artiste..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:border-sunset-orange focus:ring-1 focus:ring-sunset-orange outline-none transition-all"
+          />
         </div>
-        <input
-          type="text"
-          placeholder="Rechercher un artiste..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:border-sunset-orange focus:ring-1 focus:ring-sunset-orange outline-none transition-all"
-        />
+        <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 self-center sm:self-auto" role="group" aria-label="Trier">
+          {SORT_MODES.map((mode) => (
+            <button
+              key={mode.value}
+              onClick={() => setSortMode(mode.value)}
+              aria-pressed={sortMode === mode.value}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
+                sortMode === mode.value ? "bg-sunset text-white" : "text-white/40 hover:text-white"
+              }`}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filteredAndGroupedArtists.length === 0 ? (
-        <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
-          <p className="text-xl text-white/50 italic">Aucun artiste trouvé.</p>
+        <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 space-y-6">
+          <p className="text-xl text-white/50 italic">
+            {initialArtists.length === 0 ? "Aucun DJ pour l'instant." : "Aucun artiste trouvé."}
+          </p>
+          {isOwnProfile && initialArtists.length === 0 && (
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-2 bg-sunset px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs text-white"
+            >
+              <Plus size={14} /> Ajouter mon premier DJ
+            </Link>
+          )}
         </div>
       ) : (
         <div className="space-y-12">
           {filteredAndGroupedArtists.map(([initial, artists]) => (
-            <section key={initial} className="space-y-4">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl sm:text-3xl font-black text-sunset italic pr-2">{initial}</h2>
-                <div className="h-px bg-white/10 flex-1" />
-              </div>
+            <section key={initial || sortMode} className="space-y-4">
+              {initial && (
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl sm:text-3xl font-black text-sunset italic pr-2">{initial}</h2>
+                  <div className="h-px bg-white/10 flex-1" />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {artists.map((item) => (
@@ -142,6 +196,7 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
                           <div className="flex flex-col gap-1 mt-1 items-end pr-1">
                             <button 
                               onClick={() => handleUpdate(item.artist.id, true)}
+                              aria-label={`Vu une fois de plus : ${item.artist.name}`}
                               disabled={!!loadingId}
                               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-sunset text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
                             >
@@ -149,6 +204,7 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
                             </button>
                             <button 
                               onClick={() => handleUpdate(item.artist.id, false)}
+                              aria-label={`Retirer un passage : ${item.artist.name}`}
                               disabled={!!loadingId}
                               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-red-500 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
                             >
@@ -196,7 +252,7 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
       )}
 
       {/* Missing Letters Section */}
-      {!searchQuery && missingLetters.length > 0 && (
+      {!searchQuery && sortMode === "alpha" && initialArtists.length > 0 && missingLetters.length > 0 && (
         <section className="pt-12 border-t border-white/5">
           <div className="flex items-center gap-4 mb-6">
             <h2 className="text-xl sm:text-2xl font-black text-white/30 uppercase tracking-tighter italic">L&apos;alphabet incomplet</h2>

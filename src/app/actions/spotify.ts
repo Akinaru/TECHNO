@@ -3,38 +3,42 @@
 import { searchSpotifyArtists as searchSpotify } from "@/lib/spotify";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, requireUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+
+type SpotifyArtist = { id: string; name: string; image: string | null };
+
+// Counts and personal stats appear on most pages: refresh them all after a change
+function revalidateArtistViews() {
+  revalidatePath("/", "layout");
+}
 
 export async function searchAction(query: string) {
   if (!query) return [];
   const session = await getServerSession(authOptions);
-  
-  try {
-    const spotifyResults = await searchSpotify(query);
-    
-    // Enrich with database info (fan count + personal count)
-    const enrichedResults = await Promise.all(spotifyResults.map(async (artist: any) => {
-      const dbArtist = await prisma.artist.findUnique({
-        where: { spotifyId: artist.id },
-        include: {
-          _count: {
-            select: { seenBy: true }
-          },
-          seenBy: session?.user?.id ? {
-            where: { userId: session.user.id }
-          } : false
-        }
-      });
 
+  try {
+    const spotifyResults: SpotifyArtist[] = await searchSpotify(query);
+
+    // Enrich with database info (fan count + personal count) in a single query
+    const dbArtists = await prisma.artist.findMany({
+      where: { spotifyId: { in: spotifyResults.map((artist) => artist.id) } },
+      include: {
+        _count: { select: { seenBy: true } },
+        seenBy: session?.user?.id ? { where: { userId: session.user.id } } : false,
+      },
+    });
+    const bySpotifyId = new Map(dbArtists.map((artist) => [artist.spotifyId, artist]));
+
+    return spotifyResults.map((artist) => {
+      const dbArtist = bySpotifyId.get(artist.id);
       return {
         ...artist,
+        localId: dbArtist?.id,
         fanCount: dbArtist?._count.seenBy || 0,
-        personalCount: dbArtist?.seenBy?.[0]?.times || 0
+        personalCount: dbArtist?.seenBy?.[0]?.times || 0,
       };
-    }));
-
-    return enrichedResults;
+    });
   } catch (error) {
     console.error("Erreur de recherche Spotify:", error);
     return [];
@@ -42,11 +46,7 @@ export async function searchAction(query: string) {
 }
 
 export async function addArtistAction(spotifyId: string, name: string, image: string | null) {
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    throw new Error("Non autorisé");
-  }
+  const session = await requireUser();
 
   // Find or create artist
   let artist = await prisma.artist.findUnique({
@@ -67,7 +67,7 @@ export async function addArtistAction(spotifyId: string, name: string, image: st
           image
         }
       });
-    } else {
+    } else if (!artist.spotifyId) {
       // Update with spotifyId if it was missing
       artist = await prisma.artist.update({
         where: { id: artist.id },
@@ -76,41 +76,31 @@ export async function addArtistAction(spotifyId: string, name: string, image: st
     }
   }
 
-  // Link artist to user
-  const existingLink = await prisma.artistSeen.findUnique({
-    where: {
-      userId_artistId: {
-        userId: session.user.id,
-        artistId: artist.id
-      }
-    }
+  const times = await markSeen(session.user.id, artist.id);
+  revalidateArtistViews();
+  return { success: true, localId: artist.id, times };
+}
+
+// For artists already in the database (artist page): link by local id
+export async function seeArtistAction(artistId: string) {
+  const session = await requireUser();
+  const times = await markSeen(session.user.id, artistId);
+  revalidateArtistViews();
+  return { success: true, times };
+}
+
+// Links an artist to a user, or counts one more time
+async function markSeen(userId: string, artistId: string) {
+  const link = await prisma.artistSeen.upsert({
+    where: { userId_artistId: { userId, artistId } },
+    create: { userId, artistId, times: 1 },
+    update: { times: { increment: 1 } },
   });
-
-  if (existingLink) {
-    // Increment times seen
-    await prisma.artistSeen.update({
-      where: { id: existingLink.id },
-      data: { times: existingLink.times + 1 }
-    });
-  } else {
-    await prisma.artistSeen.create({
-      data: {
-        userId: session.user.id,
-        artistId: artist.id,
-        times: 1
-      }
-    });
-  }
-
-  revalidatePath("/");
-  revalidatePath("/profile");
-  revalidatePath("/search"); // To update trending/search counts
-  return { success: true };
+  return link.times;
 }
 
 export async function updateArtistCountAction(artistId: string, increment: boolean) {
-  const session = await getServerSession(authOptions);
-  if (!session) throw new Error("Non autorisé");
+  const session = await requireUser();
 
   const existingLink = await prisma.artistSeen.findUnique({
     where: {
@@ -136,16 +126,12 @@ export async function updateArtistCountAction(artistId: string, increment: boole
     });
   }
 
-  revalidatePath("/");
-  revalidatePath("/profile");
-  revalidatePath("/search");
-  revalidatePath(`/artist/${artistId}`);
-  return { success: true };
+  revalidateArtistViews();
+  return { success: true, times: newTimes };
 }
 
 export async function removeArtistAction(artistId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session) throw new Error("Non autorisé");
+  const session = await requireUser();
 
   await prisma.artistSeen.deleteMany({
     where: {
@@ -154,9 +140,19 @@ export async function removeArtistAction(artistId: string) {
     }
   });
 
-  revalidatePath("/");
-  revalidatePath("/profile");
-  revalidatePath("/search");
+  revalidateArtistViews();
+  return { success: true };
+}
+
+export async function updateArtistNotesAction(artistId: string, notes: string) {
+  const session = await requireUser();
+  const trimmed = notes.trim().slice(0, 500);
+
+  await prisma.artistSeen.update({
+    where: { userId_artistId: { userId: session.user.id, artistId } },
+    data: { notes: trimmed || null },
+  });
+
   revalidatePath(`/artist/${artistId}`);
   return { success: true };
 }

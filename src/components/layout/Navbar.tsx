@@ -55,10 +55,13 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
+  // Close menus on navigation (adjusting state during render, no effect needed)
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
     setIsDropdownOpen(false);
     setIsMobilePanelOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     if (isMobilePanelOpen) {
@@ -76,7 +79,7 @@ export function Navbar() {
   const adminLinks = [
     { 
       href: "/admin/validation", 
-      label: "Validations", 
+      label: "Membres", 
       icon: UserCheck, 
       showBadge: true 
     },
@@ -105,6 +108,7 @@ export function Navbar() {
           {/* LEFT: LOGO & BURGER */}
           <div className="flex items-center gap-4">
             <button 
+              aria-label="Ouvrir le menu"
               className="md:hidden text-white/50 hover:text-white cursor-pointer p-1 relative"
               onClick={() => setIsMobilePanelOpen(true)}
             >
@@ -159,6 +163,8 @@ export function Navbar() {
               <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  aria-label="Menu du compte"
+                  aria-expanded={isDropdownOpen}
                   className="flex items-center gap-2 group cursor-pointer relative"
                 >
                   <UserAvatar 
@@ -189,6 +195,9 @@ export function Navbar() {
 
                       <Link href={`/profile/${session.user.id}`} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
                         <UserIcon size={14} /> Profil
+                      </Link>
+                      <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
+                        <Settings size={14} /> Paramètres
                       </Link>
 
                       {session.user.role === "ADMIN" && (
@@ -266,6 +275,7 @@ export function Navbar() {
                   <span className="font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TechnoDex</span>
                 </Link>
                 <button 
+                  aria-label="Fermer le menu"
                   onClick={() => setIsMobilePanelOpen(false)}
                   className="text-white/40 hover:text-white cursor-pointer"
                 >
@@ -317,6 +327,17 @@ export function Navbar() {
                   >
                     <UserIcon size={18} /> Mon Profil
                   </Link>
+                  {session && (
+                    <Link 
+                      href="/settings"
+                      className={cn(
+                        "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
+                        pathname === "/settings" ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                      )}
+                    >
+                      <Settings size={18} /> Paramètres
+                    </Link>
+                  )}
                 </nav>
 
                 {/* Admin Nav */}
