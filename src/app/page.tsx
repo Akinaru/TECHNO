@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ProfileArtistList } from "@/components/profile/ProfileArtistList";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { CrewFeed } from "@/components/home/CrewFeed";
-import { getPalmares, getCrewFeed, computeStats } from "@/lib/palmares";
+import { getPalmares, getCrewFeed, computeStats, getSeenThresholds } from "@/lib/palmares";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -32,9 +32,10 @@ export default async function Home() {
     );
   }
 
-  const [palmares, feed] = await Promise.all([
+  const [palmares, feed, seenThresholds] = await Promise.all([
     getPalmares(session.user.id),
     getCrewFeed(session.user.id),
+    getSeenThresholds(),
   ]);
   const stats = computeStats(palmares);
 
@@ -50,7 +51,7 @@ export default async function Home() {
       <ProfileStats stats={stats} />
       <CrewFeed feed={feed} />
 
-      <ProfileArtistList initialArtists={palmares} isOwnProfile />
+      <ProfileArtistList initialArtists={palmares} isOwnProfile seenThresholds={seenThresholds} />
     </div>
   );
 }

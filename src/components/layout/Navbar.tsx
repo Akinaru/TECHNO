@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import Image from "next/image";
 import {
   Users,
   Plus,
@@ -16,6 +15,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { Logo } from "@/components/ui/Logo";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -111,9 +111,7 @@ export function Navbar() {
 
   const logo = (
     <Link href="/" className="flex items-center gap-3 group">
-      <div className="relative w-9 h-9 group-hover:rotate-12 transition-transform">
-        <Image src="/logo.svg" alt="TechnoDex Logo" fill className="object-contain" />
-      </div>
+      <Logo className="w-10 h-10 -rotate-3 group-hover:rotate-6 group-hover:scale-110 transition-transform" />
       <span className="display outlined text-2xl sm:text-3xl">TechnoDex</span>
     </Link>
   );

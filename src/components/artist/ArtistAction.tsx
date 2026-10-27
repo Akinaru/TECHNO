@@ -5,13 +5,16 @@ import { Plus, Minus, Check, Loader2 } from "lucide-react";
 import { seeArtistAction, updateArtistCountAction } from "@/app/actions/spotify";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { SeenBadge } from "@/components/ui/SeenBadge";
+import { seenTier, type SeenThresholds } from "@/lib/seenTiers";
 
 interface ArtistActionProps {
   artistId: string;
   initialCount: number;
+  seenThresholds: SeenThresholds;
 }
 
-export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
+export function ArtistAction({ artistId, initialCount, seenThresholds }: ArtistActionProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -47,6 +50,8 @@ export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
     }
   };
 
+  const tier = seenTier(count, seenThresholds);
+
   if (count === 0) {
     return (
       <button
@@ -79,9 +84,9 @@ export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
           <Minus strokeWidth={2.5} />
         </button>
         
-        <div className="grid justify-items-center leading-none">
-          <output className="text-accent" aria-live="polite">{count}</output>
-          <span className="label">fois vu</span>
+        <div className="grid justify-items-center gap-2 leading-none" aria-live="polite">
+          <SeenBadge times={count} thresholds={seenThresholds} className="text-[1.6rem]! [--seen-size:4rem]!" />
+          <span className="label">{tier.name}</span>
         </div>
 
         <button
@@ -95,10 +100,15 @@ export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
         </button>
       </div>
 
-      <span className="stamp stamp--green a-slam text-sm inline-flex! items-center gap-2" style={{ "--tilt": "-6deg" } as React.CSSProperties}>
-        <Check size={16} strokeWidth={2.5} />
-        Dans ton TechnoDex
-      </span>
+      <div className="grid gap-2 justify-items-start">
+        <span className="stamp stamp--green a-slam text-sm inline-flex! items-center gap-2" style={{ "--tilt": "-6deg" } as React.CSSProperties}>
+          <Check size={16} strokeWidth={2.5} />
+          Dans ton TechnoDex
+        </span>
+        <span className="t-small muted">
+          {tier.next ? `Encore ${tier.next.toGo} fois pour passer ${tier.next.name}` : "Niveau max : légende de ton dex"}
+        </span>
+      </div>
     </div>
   );
 }

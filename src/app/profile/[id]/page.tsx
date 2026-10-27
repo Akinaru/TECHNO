@@ -9,7 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { EditableAvatar } from "@/components/profile/EditableAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ShareButton } from "@/components/profile/ShareButton";
-import { getPalmares, computeStats, getCompatibility } from "@/lib/palmares";
+import { getPalmares, computeStats, getCompatibility, getSeenThresholds } from "@/lib/palmares";
 import { accentStyle } from "@/lib/accent";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,9 +26,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   }
 
   const isOwnProfile = session?.user.id === user.id;
-  const [palmares, compatibility] = await Promise.all([
+  const [palmares, compatibility, seenThresholds] = await Promise.all([
     getPalmares(user.id),
     session && !isOwnProfile ? getCompatibility(session.user.id, user.id) : null,
+    getSeenThresholds(),
   ]);
   const stats = computeStats(palmares);
 
@@ -97,7 +98,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
       <ProfileStats stats={stats} />
 
-      <ProfileArtistList initialArtists={palmares} isOwnProfile={isOwnProfile} />
+      <ProfileArtistList initialArtists={palmares} isOwnProfile={isOwnProfile} seenThresholds={seenThresholds} />
     </div>
   );
 }

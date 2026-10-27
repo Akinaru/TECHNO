@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: "TechnoDex",
   description: "Garde une trace des DJs vus en teuf avec TechnoDex",
   manifest: "/manifest.json",
+  icons: { apple: "/apple-touch-icon.png" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

@@ -8,6 +8,8 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { updateArtistCountAction } from "@/app/actions/spotify";
 import { ArtistPhoto } from "@/components/artist/ArtistPhoto";
 import { accentStyle } from "@/lib/accent";
+import { SeenBadge } from "@/components/ui/SeenBadge";
+import type { SeenThresholds } from "@/lib/seenTiers";
 
 type ArtistSeen = {
   id: string;
@@ -30,6 +32,7 @@ type ArtistSeen = {
 
 interface ProfileArtistListProps {
   initialArtists: ArtistSeen[];
+  seenThresholds: SeenThresholds;
   isOwnProfile?: boolean;
 }
 
@@ -45,7 +48,7 @@ const TILTS = [-1.2, 0.9, -0.5, 1.4];
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtistListProps) {
+export function ProfileArtistList({ initialArtists, isOwnProfile, seenThresholds }: ProfileArtistListProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("alpha");
@@ -179,9 +182,7 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                         />
                       </Link>
-                      <span className="sticker display absolute -top-2 -right-2 z-[2] w-10 h-10 text-xl pointer-events-none">
-                        {item.times}
-                      </span>
+                      <SeenBadge times={item.times} thresholds={seenThresholds} className="absolute! -top-3 -right-3 z-[2] pointer-events-none" />
                     </div>
 
                     <h3 className="dex__name truncate">

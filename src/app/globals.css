@@ -1665,3 +1665,113 @@
   }
 
 }
+
+@layer components {
+  /* Vignette « vu N fois » (SeenBadge) : évolue par palier (forme, couleur, taille) et bouille comme les boutons. */
+  @keyframes seen-boil {
+    0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+    25% { transform: translate(-0.06rem, 0.05rem) rotate(-2deg) scale(1.02, 0.98); }
+    50% { transform: translate(0.05rem, -0.06rem) rotate(2deg) scale(0.98, 1.02); }
+    75% { transform: translate(-0.04rem, -0.04rem) rotate(-1deg) scale(1.01); }
+  }
+
+  @keyframes seen-in {
+    0% { transform: scale(0) rotate(-25deg); }
+    60% { transform: scale(1.3) rotate(8deg); }
+    100% { transform: scale(1) rotate(var(--seen-tilt, -6deg)); }
+  }
+
+  .seen {
+    --seen-size: 2.4rem;
+    --seen-bg: var(--panel-2);
+    --seen-shape: var(--cut-a);
+    position: relative;
+    isolation: isolate;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--seen-size);
+    height: var(--seen-size);
+    padding-top: 0.12em;
+    font-family: var(--font-display);
+    font-size: calc(var(--seen-size) * 0.46);
+    line-height: 1;
+    color: var(--white);
+    filter: drop-shadow(0.14rem 0.18rem 0 var(--ink));
+    transform: rotate(var(--seen-tilt, -6deg));
+    animation: seen-in 0.45s var(--ease-bounce) both;
+  }
+
+  .seen::before,
+  .seen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    clip-path: var(--seen-shape);
+  }
+
+  .seen::before {
+    background: var(--seen-bg);
+    animation: seen-boil var(--seen-speed, 0.45s) steps(4, end) infinite;
+  }
+
+  .seen::after {
+    display: none;
+  }
+
+  /* 1 · Repéré : carré sombre */
+  .seen--1 {
+    -webkit-text-stroke: 0;
+  }
+
+  /* 2 · Habitué : carré accent */
+  .seen--2 {
+    --seen-size: 2.6rem;
+    --seen-bg: var(--accent);
+    --seen-shape: var(--cut-b);
+    --seen-tilt: 5deg;
+    color: var(--on-accent);
+  }
+
+  /* 3 · Fan : éclat bleu */
+  .seen--3 {
+    --seen-size: 2.95rem;
+    --seen-bg: var(--r-rare);
+    --seen-shape: polygon(50% 0%, 61% 18%, 82% 10%, 79% 32%, 100% 39%, 84% 55%, 96% 75%, 73% 76%, 67% 98%, 50% 84%, 33% 98%, 27% 76%, 4% 75%, 16% 55%, 0% 39%, 21% 32%, 18% 10%, 39% 18%);
+    --seen-tilt: -8deg;
+    --seen-speed: 0.4s;
+    color: var(--ink);
+  }
+
+  /* 4 · Fidèle : hexagone violet */
+  .seen--4 {
+    --seen-size: 3.2rem;
+    --seen-bg: var(--r-epic);
+    --seen-shape: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    --seen-tilt: 6deg;
+    --seen-speed: 0.36s;
+    color: var(--ink);
+  }
+
+  /* 5 · Légende : grand éclat doré, contour holographique */
+  .seen--5 {
+    --seen-size: 3.5rem;
+    --seen-bg: var(--r-legend);
+    --seen-shape: polygon(50% 0%, 59% 15%, 75% 6%, 76% 24%, 94% 25%, 85% 41%, 100% 50%, 85% 59%, 94% 75%, 76% 76%, 75% 94%, 59% 85%, 50% 100%, 41% 85%, 25% 94%, 24% 76%, 6% 75%, 15% 59%, 0% 50%, 15% 41%, 6% 25%, 24% 24%, 25% 6%, 41% 15%);
+    --seen-tilt: -10deg;
+    --seen-speed: 0.32s;
+    color: var(--ink);
+  }
+
+  .seen--5::before {
+    inset: 0.22rem;
+  }
+
+  .seen--5::after {
+    display: block;
+    z-index: -2;
+    background: conic-gradient(from var(--holo-angle), #fec83e, #ff7ad9, #7af0ff, #b4ff6c, #fec83e);
+    animation: shimmer 2s linear infinite;
+  }
+}

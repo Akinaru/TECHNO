@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { computeSeenThresholds } from "@/lib/seenTiers";
 
 // A user's seen artists, each with a few other crew members who also saw them
 export async function getPalmares(userId: string) {
@@ -74,4 +75,14 @@ export async function getCrewFeed(excludeUserId: string, take = 12) {
       artist: { select: { id: true, name: true, image: true } },
     },
   });
+}
+
+// Badge thresholds from how often the whole crew sees its DJs
+export async function getSeenThresholds() {
+  const rows = await prisma.artistSeen.groupBy({
+    by: ["times"],
+    where: { user: { isApproved: true } },
+    _count: { _all: true },
+  });
+  return computeSeenThresholds(rows.map((row) => ({ times: row.times, count: row._count._all })));
 }

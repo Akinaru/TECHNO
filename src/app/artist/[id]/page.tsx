@@ -9,6 +9,8 @@ import { ArtistPhoto } from "@/components/artist/ArtistPhoto";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { accentStyle } from "@/lib/accent";
+import { SeenBadge } from "@/components/ui/SeenBadge";
+import { getSeenThresholds } from "@/lib/palmares";
 
 export default async function ArtistPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,7 +34,10 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
   const personalSeen = artist.seenBy.find(entry => entry.userId === session?.user?.id);
 
   // Optional: Fetch more info from Spotify if we have the ID
-  const spotifyDetails = artist.spotifyId ? await getSpotifyArtistDetails(artist.spotifyId) : null;
+  const [spotifyDetails, seenThresholds] = await Promise.all([
+    artist.spotifyId ? getSpotifyArtistDetails(artist.spotifyId) : null,
+    getSeenThresholds(),
+  ]);
 
   const popularityBlocks = spotifyDetails?.popularity != null ? Math.round(spotifyDetails.popularity / 10) : 0;
 
@@ -95,6 +100,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
           <ArtistAction 
             artistId={artist.id}
             initialCount={personalSeen?.times || 0}
+            seenThresholds={seenThresholds}
           />
         </div>
       </div>
@@ -129,9 +135,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
               )}
             </div>
             
-            <span className="sticker display text-2xl">
-              {entry.times}
-            </span>
+            <SeenBadge times={entry.times} thresholds={seenThresholds} />
           </Link>
         ))}
       </div>
