@@ -12,14 +12,14 @@ services:
     networks:
       - dev
     ports:
-      - "3309:3306"
+      - "3310:3306"
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin_docker_technodex
     depends_on:
       - db
     ports:
-      - 81:80
+      - 8081:80
     environment:
       PMA_HOST: db
       UPLOAD_LIMIT: 100M
@@ -31,8 +31,8 @@ services:
     container_name: maildev_docker_technodex
     command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
     ports:
-      - "82:80"
-      - "1025:25"
+      - "8082:80"
+      - "1026:25"
     networks:
       - dev
 
@@ -40,7 +40,7 @@ services:
     build: ./docker/php
     container_name: www_docker_technodex
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./docker/php/vhosts:/etc/apache2/sites-enabled
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
@@ -55,7 +55,7 @@ services:
     sysctls:
       - "net.core.somaxconn=511"
     ports:
-      - 6379:6379
+      - 6380:6379
 
 networks:
   dev:

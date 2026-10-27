@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import { searchAction, addArtistAction, getTrendingArtistsAction } from "@/app/actions/spotify";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
-import { Search, Plus, Check, TrendingUp } from "lucide-react";
+import { Search, Plus, Check, TrendingUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArtistPhoto } from "@/components/artist/ArtistPhoto";
 
 type Artist = {
   id: string;
@@ -17,6 +16,9 @@ type Artist = {
   fanCount?: number;
   personalCount?: number;
 };
+
+const TILTS = [-1.2, 0.9, -0.5, 1.4];
+const CUTS = ["a", "b", "c"];
 
 export default function SearchPage() {
   const { data: session } = useSession();
@@ -83,159 +85,169 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-8 md:pt-16 pb-32">
-      <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-8 md:mb-12 text-sunset text-center uppercase tracking-tighter italic pr-4 underline decoration-sunset-purple decoration-4 md:decoration-8 underline-offset-8 md:underline-offset-12">TROUVER UN DJ</h1>
-      
-      {/* Alert Success */}
-      <AnimatePresence>
-        {successMessage && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-2xl font-black shadow-[0_0_50px_rgba(34,197,94,0.6)] flex items-center gap-3 border border-white/20"
-          >
-            <Check className="w-5 h-5 text-white" />
-            <span className="pr-2 uppercase tracking-tight font-black">{successMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="max-w-4xl mx-auto p-4 md:p-8 pt-8 md:pt-12">
+      <div className="mb-8">
+        <span className="tag">Capture-les tous</span>
+        <h1 className="display outlined t-h1 a-drop mt-2" style={{ "--tilt": "-1deg" } as React.CSSProperties}>
+          Trouver un DJ
+        </h1>
+      </div>
 
-      <div className="relative mb-12 md:mb-24 group max-w-2xl mx-auto">
-        <div className="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none text-white/20 group-focus-within:text-sunset-orange transition-colors">
-          <Search size={20} strokeWidth={3} />
+      {/* Alert Success */}
+      {successMessage && (
+        <div className="toast shape paper" role="status">
+          <span className="sticker" aria-hidden>
+            <Check strokeWidth={2.5} />
+          </span>
+          <b className="display text-xl">{successMessage}</b>
         </div>
-        <input
-          type="text"
-          placeholder="Holy Priest, Lil Texas..."
-          aria-label="Rechercher un DJ"
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full bg-white/5 border-b-2 border-white/10 py-4 md:py-8 pl-12 md:pl-16 pr-4 md:pr-6 text-lg md:text-2xl font-black uppercase tracking-tighter focus:border-sunset-orange outline-none transition-all placeholder:text-white/10 italic"
-        />
+      )}
+
+      <div className="relative mb-12 max-w-2xl">
+        <label className="field">
+          <span className="label">Artiste</span>
+          <span className="search">
+            <Search strokeWidth={2.5} aria-hidden />
+            <input
+              type="text"
+              placeholder="Holy Priest, Lil Texas..."
+              aria-label="Rechercher un DJ"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="input text-lg py-3! pr-12!"
+            />
+          </span>
+        </label>
         {loading && (
-          <div className="absolute inset-y-0 right-0 pr-6 flex items-center pointer-events-none">
-            <div className="animate-spin h-6 w-6 border-4 border-sunset-orange border-t-transparent rounded-full"></div>
-          </div>
+          <Loader2
+            strokeWidth={2.5}
+            className="absolute right-3 bottom-3 w-6 h-6 text-ink animate-spin pointer-events-none"
+            aria-hidden
+          />
         )}
       </div>
 
       <div className="grid gap-12">
         {/* Search Results */}
         {query.length > 2 && (
-            <div className="space-y-6">
-                <div className="flex items-center gap-4 px-2">
-                    <p className="text-xs uppercase font-black tracking-[0.3em] text-white/30 italic pr-2">Résultats Spotify</p>
-                    <div className="h-px bg-white/5 flex-1" />
+            <section>
+                <div className="flex items-baseline justify-between gap-4 mb-4">
+                    <h2 className="display t-h2">Résultats Spotify</h2>
+                    {results.length > 0 && <span className="tag">{results.length}</span>}
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="grid gap-4">
                     {!loading && results.length === 0 && (
-                        <p className="text-center text-white/40 italic py-8">Aucun DJ trouvé. Vérifie l&apos;orthographe ?</p>
+                        <div className="empty">
+                            <span className="shape slab boil display t-h3" style={{ "--tilt": "-2deg" } as React.CSSProperties}>
+                                Aucun DJ trouvé
+                            </span>
+                            <p className="muted m-0">Vérifie l&apos;orthographe ?</p>
+                        </div>
                     )}
-                    {results.map((artist) => (
-                        <div key={artist.id} className="flex items-center justify-between p-2 md:p-3 rounded-2xl hover:bg-white/[0.03] transition-all group">
-                            <div className="flex items-center gap-3 md:gap-6">
-                                <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/5 shadow-xl transition-transform group-hover:scale-105">
-                                    {artist.image ? (
-                                    <Image src={artist.image} alt={artist.name} fill sizes="64px" className="object-cover" />
-                                    ) : (
-                                    <span className="absolute inset-0 flex items-center justify-center text-xl">🎵</span>
+                    {results.map((artist, index) => (
+                        <div
+                            key={artist.id}
+                            className="shape raised row"
+                            style={{ "--tilt": `${index % 2 ? 0.4 : -0.4}deg`, "--cut": `var(--cut-${CUTS[index % 3]})` } as React.CSSProperties}
+                        >
+                            <ArtistPhoto
+                                name={artist.name}
+                                image={artist.image}
+                                alt={artist.name}
+                                sizes="64px"
+                                className="w-14 h-14 md:w-16 md:h-16 shrink-0"
+                                style={{ clipPath: "var(--cut-b)" }}
+                                initialsClassName="text-lg"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-display uppercase text-lg md:text-xl leading-tight truncate">
+                                    {artist.localId ? <Link href={`/artist/${artist.localId}`} className="hover:text-accent">{artist.name}</Link> : artist.name}
+                                </h3>
+                                <div className="flex flex-wrap items-center gap-x-2 text-xs font-semibold muted">
+                                    {Number(artist.fanCount) > 0 && (
+                                        <p>
+                                            Vu par <span className="text-white font-bold">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "ravers" : "raver"}
+                                        </p>
                                     )}
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="font-black text-lg md:text-2xl tracking-tighter group-hover:text-sunset-orange transition-colors pr-4 italic uppercase leading-none truncate max-w-[150px] sm:max-w-none">
-                                        {artist.localId ? <Link href={`/artist/${artist.localId}`} className="hover:underline">{artist.name}</Link> : artist.name}
-                                    </h3>
-                                    <div className="flex flex-wrap items-center gap-x-3">
-                                        {Number(artist.fanCount) > 0 && (
-                                            <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.2em] italic pr-1">
-                                                Vu par <span className="text-sunset-purple">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "ravers" : "raver"}
-                                            </p>
-                                        )}
-                                        {Number(artist.personalCount) > 0 && (
-                                            <>
-                                                <div className="w-1 h-1 bg-white/10 rounded-full" />
-                                                <p className="text-[10px] md:text-xs font-black text-sunset-orange uppercase tracking-[0.2em] italic pr-2">
-                                                    dont toi <span className="text-white font-black">{artist.personalCount}</span> fois
-                                                </p>
-                                            </>
-                                        )}
-                                    </div>
+                                    {Number(artist.personalCount) > 0 && (
+                                        <p>
+                                            · dont toi <span className="accent font-bold">{artist.personalCount}</span> fois
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                             
                             <button
                                 onClick={() => handleAdd(artist)}
                                 disabled={addingId === artist.id}
-                                className={`px-3 md:px-5 py-2 md:py-3 rounded-xl flex items-center gap-2 transition-all font-black uppercase text-[9px] md:text-[10px] tracking-widest cursor-pointer ${
-                                    addingId === artist.id 
-                                    ? "bg-white text-black scale-95" 
-                                    : "bg-white/5 hover:bg-sunset text-white border border-white/5"
-                                }`}
+                                className={`btn btn--sm btn--dark shrink-0 min-w-0! px-4! ${addingId === artist.id ? "is-loading" : ""}`}
                             >
-                                {addingId === artist.id ? <Check size={14} /> : <Plus size={14} />}
-                                <span>{addingId === artist.id ? "Ajouté" : "Je l'ai vu"}</span>
+                                <span>
+                                    {addingId === artist.id ? <Check size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}
+                                    {addingId === artist.id ? "Ajouté" : "Je l'ai vu"}
+                                </span>
                             </button>
                         </div>
                     ))}
                 </div>
-            </div>
+            </section>
         )}
 
         {/* Trending Artists (Default View) */}
         {query.length <= 2 && trending.length > 0 && (
-            <div className="space-y-10">
-                <div className="flex items-center gap-4 px-2">
-                    <TrendingUp className="w-5 h-5 text-sunset-orange" />
-                    <p className="text-xs uppercase font-black tracking-[0.3em] text-white/40 italic pr-2">TOP TENDANCES</p>
-                    <div className="h-px bg-white/5 flex-1" />
+            <section>
+                <div className="flex items-center gap-3 mb-5">
+                    <TrendingUp className="w-7 h-7 text-accent shrink-0" strokeWidth={2.5} aria-hidden />
+                    <h2 className="display t-h2">Top tendances</h2>
+                    <span className="tag ml-auto">{trending.length}</span>
                 </div>
                 
-                <div className="flex flex-col gap-6 md:gap-8">
-                    {trending.map((artist) => (
-                        <div key={artist.id} className="flex items-center justify-between group">
-                            <div className="flex items-center gap-4 sm:gap-8 md:gap-12">
-                                <div className="relative w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl md:rounded-3xl overflow-hidden bg-white/5 shrink-0 transition-all duration-700 border border-white/5 group-hover:border-sunset-orange/50 shadow-2xl">
-                                    {artist.image ? (
-                                    <Image src={artist.image} alt={artist.name} fill sizes="160px" className="object-cover transition-all duration-700 group-hover:scale-110" />
-                                    ) : (
-                                    <span className="absolute inset-0 flex items-center justify-center text-3xl md:text-5xl">🎵</span>
-                                    )}
-                                </div>
-                                <div className="space-y-2 md:space-y-3">
-                                    <h3 className="font-black text-2xl sm:text-4xl md:text-6xl tracking-tighter pr-4 group-hover:text-sunset-orange transition-colors italic uppercase leading-[0.8]">
-                                        <Link href={`/artist/${artist.localId}`}>{artist.name}</Link>
-                                    </h3>
-                                    <div className="flex flex-col gap-0.5 md:gap-1">
-                                        <p className="text-[10px] md:text-xs font-black text-white/40 uppercase tracking-[0.3em] italic pr-2">
-                                            <span className="text-sunset-purple font-black">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "Ravers l'ont vu" : "Raver l'a vu"}
-                                        </p>
-                                        {Number(artist.personalCount) > 0 && (
-                                            <p className="text-[10px] md:text-xs font-black text-sunset-orange uppercase tracking-[0.3em] italic pr-2">
-                                                dont toi <span className="text-white font-black">{artist.personalCount}</span> fois
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {trending.map((artist, index) => (
+                        <article
+                            key={artist.id}
+                            className="shape dex"
+                            style={{ "--tilt": `${TILTS[index % 4]}deg`, "--cut": `var(--cut-${CUTS[index % 3]})` } as React.CSSProperties}
+                        >
+                            <div className="dex__top">
+                                <span className="dex__num">#{String(index + 1).padStart(2, "0")}</span>
                             </div>
-                            
+                            <Link href={`/artist/${artist.localId}`} className="block" aria-label={artist.name}>
+                                <ArtistPhoto
+                                    name={artist.name}
+                                    image={artist.image}
+                                    alt={artist.name}
+                                    sizes="(max-width: 768px) 50vw, 240px"
+                                />
+                            </Link>
+                            <h3 className="dex__name truncate">
+                                <Link href={`/artist/${artist.localId}`} className="hover:text-accent">{artist.name}</Link>
+                            </h3>
+                            <div className="dex__meta">
+                                <p>
+                                    <span className="text-white font-bold">{artist.fanCount}</span> {Number(artist.fanCount) > 1 ? "Ravers l'ont vu" : "Raver l'a vu"}
+                                </p>
+                                {Number(artist.personalCount) > 0 && (
+                                    <p>
+                                        dont toi <span className="accent font-bold">{artist.personalCount}</span> fois
+                                    </p>
+                                )}
+                            </div>
                             <button
                                 onClick={() => handleAdd(artist)}
                                 disabled={addingId === artist.id}
-                                className={`px-4 md:px-10 py-3 md:py-6 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 transition-all font-black uppercase text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] cursor-pointer shadow-2xl border border-white/5 ${
-                                    addingId === artist.id 
-                                    ? "bg-white text-black scale-95" 
-                                    : "bg-white/5 hover:bg-sunset text-white hover:border-sunset-orange hover:-translate-y-1"
-                                }`}
+                                className={`btn btn--sm btn--dark btn--block min-w-0! ${addingId === artist.id ? "is-loading" : ""}`}
                             >
-                                {addingId === artist.id ? <Check size={16} /> : <Plus size={16} />}
-                                <span className="hidden xs:block">{addingId === artist.id ? "VU" : "VU !"}</span>
+                                <span>
+                                    {addingId === artist.id ? <Check size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}
+                                    {addingId === artist.id ? "Vu" : "Vu !"}
+                                </span>
                             </button>
-                        </div>
+                        </article>
                     ))}
                 </div>
-            </div>
+            </section>
         )}
       </div>
     </div>

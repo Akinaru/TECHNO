@@ -25,9 +25,9 @@ export function ArtistNotes({ artistId, initialNotes }: { artistId: string; init
   }
 
   return (
-    <div className="mb-12 bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6">
-      <label htmlFor="artist-notes" className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/40 italic mb-3 pr-2">
-        Ton avis <span className="normal-case tracking-normal font-bold text-white/20">(visible par le crew)</span>
+    <div className="shape paper card on-paper tilt mb-12" style={{ "--tilt": "-0.8deg", "--cut": "var(--cut-c)" } as React.CSSProperties}>
+      <label htmlFor="artist-notes" className="label ink-muted block mb-3">
+        Ton avis <span className="normal-case tracking-normal font-semibold">(visible par le crew)</span>
       </label>
       <textarea
         id="artist-notes"
@@ -36,20 +36,22 @@ export function ArtistNotes({ artistId, initialNotes }: { artistId: string; init
         maxLength={MAX_LENGTH}
         rows={3}
         placeholder="Meilleur set, closing de folie au Rex, le drop sur..."
-        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:border-sunset-orange outline-none transition-colors resize-none placeholder:text-white/15"
+        className="textarea resize-none"
       />
-      <div className="flex items-center justify-between mt-3">
-        <span className="text-[10px] text-white/30 font-bold">{notes.length}/{MAX_LENGTH}</span>
+      <div className="flex items-center justify-between gap-3 mt-4">
+        <span className="t-small ink-muted font-bold">{notes.length}/{MAX_LENGTH}</span>
         <div className="flex items-center gap-3">
-          {status === "error" && <span className="text-[10px] font-black uppercase text-red-400">Erreur</span>}
+          {status === "error" && <span className="t-small font-bold text-danger" role="alert">Erreur</span>}
           <button
             onClick={handleSave}
             disabled={status === "saving" || notes === saved}
-            className="inline-flex items-center gap-2 bg-sunset disabled:opacity-40 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer disabled:cursor-default"
+            className={`btn btn--sm ${status === "saving" ? "is-loading" : ""}`}
           >
-            {status === "saving" && <Loader2 size={12} className="animate-spin" />}
-            {status === "saved" && <Check size={12} />}
-            {status === "saved" ? "Enregistré" : "Enregistrer"}
+            <span>
+              {status === "saving" && <Loader2 size={14} strokeWidth={2.5} className="animate-spin" />}
+              {status === "saved" && <Check size={14} strokeWidth={2.5} />}
+              {status === "saved" ? "Enregistré" : "Enregistrer ▸"}
+            </span>
           </button>
         </div>
       </div>

@@ -10,20 +10,16 @@ import { updateProfileAction, changePasswordAction } from "@/app/actions/user";
 
 type FormState = { success: boolean; error?: string } | null;
 
-const inputClass =
-  "w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white focus:border-sunset-orange focus:ring-4 focus:ring-sunset-orange/10 transition-all outline-none";
-const labelClass = "block text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-2 ml-1";
-const cardClass = "bg-white/5 border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5";
-const titleClass = "text-xs uppercase font-black tracking-[0.3em] text-white/60 italic pr-2";
-const buttonClass =
-  "inline-flex items-center gap-2 bg-sunset px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50 cursor-pointer";
-
 function Feedback({ state, successText }: { state: FormState; successText: string }) {
   if (!state) return null;
   return state.success ? (
-    <p role="status" className="text-xs font-bold text-green-400">{successText}</p>
+    <p role="status">
+      <span className="stamp stamp--green text-sm" style={{ "--tilt": "-4deg" } as React.CSSProperties}>
+        {successText}
+      </span>
+    </p>
   ) : (
-    <p role="alert" className="text-xs font-bold text-red-400">{state.error}</p>
+    <p role="alert" className="help is-error">{state.error}</p>
   );
 }
 
@@ -50,15 +46,23 @@ export function SettingsForms({ user }: { user: { name: string | null; email: st
   );
 
   return (
-    <div className="space-y-6">
-      <section className={cardClass}>
-        <h2 className={titleClass}>Photo de profil</h2>
-        <div className="flex items-center gap-5">
+    <div className="grid gap-8">
+      <section className="shape paper card on-paper tilt grid gap-5" style={{ "--tilt": "-0.8deg" } as React.CSSProperties}>
+        <h2 className="display t-h2">Photo de profil</h2>
+        <div className="flex flex-wrap items-center gap-5">
           <UserAvatar image={user.image} name={user.name} className="w-20 h-20 text-3xl" />
-          <div className="flex flex-wrap gap-2">
-            <label className={`${buttonClass} ${avatar.loading ? "opacity-50 pointer-events-none" : ""}`}>
-              {avatar.loading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              Changer
+          <div className="flex flex-wrap gap-3">
+            <label
+              className={`btn btn--dark btn--sm${avatar.loading ? " is-loading opacity-50 pointer-events-none" : ""}`}
+            >
+              <span>
+                {avatar.loading ? (
+                  <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />
+                ) : (
+                  <Upload size={16} strokeWidth={2.5} />
+                )}
+                Changer
+              </span>
               <input
                 type="file"
                 accept="image/*"
@@ -72,51 +76,59 @@ export function SettingsForms({ user }: { user: { name: string | null; email: st
               />
             </label>
             {user.image && (
-              <button
-                onClick={avatar.remove}
-                disabled={avatar.loading}
-                className="inline-flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer disabled:opacity-50"
-              >
-                <Trash2 size={14} /> Supprimer
+              <button onClick={avatar.remove} disabled={avatar.loading} className="btn btn--danger btn--sm">
+                <span>
+                  <Trash2 size={16} strokeWidth={2.5} /> Supprimer
+                </span>
               </button>
             )}
           </div>
         </div>
-        {avatar.error && <p role="alert" className="text-xs font-bold text-red-400">{avatar.error}</p>}
+        {avatar.error && <p role="alert" className="help is-error">{avatar.error}</p>}
       </section>
 
-      <form action={profileAction} className={cardClass}>
-        <h2 className={titleClass}>Profil</h2>
-        <div>
-          <label htmlFor="name" className={labelClass}>Pseudo</label>
-          <input id="name" name="name" defaultValue={user.name ?? ""} required maxLength={40} className={inputClass} />
+      <form action={profileAction} className="shape paper card on-paper tilt grid gap-5" style={{ "--tilt": "0.8deg" } as React.CSSProperties}>
+        <h2 className="display t-h2">Profil</h2>
+        <div className="field">
+          <label htmlFor="name" className="label ink-muted">Pseudo</label>
+          <input id="name" name="name" defaultValue={user.name ?? ""} required maxLength={40} className="input" />
         </div>
-        <div>
-          <label htmlFor="email" className={labelClass}>Email</label>
-          <input id="email" value={user.email ?? ""} disabled className={`${inputClass} opacity-50`} />
+        <div className="field">
+          <label htmlFor="email" className="label ink-muted">Email</label>
+          <input id="email" value={user.email ?? ""} disabled className="input opacity-60 cursor-not-allowed" />
+          <span className="help">L&apos;email ne se change pas.</span>
         </div>
         <Feedback state={profileState} successText="Profil mis à jour" />
-        <button type="submit" disabled={profilePending} className={buttonClass}>
-          {profilePending && <Loader2 size={14} className="animate-spin" />}
-          Enregistrer
-        </button>
+        <div>
+          <button type="submit" disabled={profilePending} className={`btn${profilePending ? " is-loading" : ""}`}>
+            <span>
+              {profilePending && <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />}
+              Enregistrer ▸
+            </span>
+          </button>
+        </div>
       </form>
 
-      <form action={passwordAction} className={cardClass}>
-        <h2 className={titleClass}>Mot de passe</h2>
-        <div>
-          <label htmlFor="current" className={labelClass}>Mot de passe actuel</label>
-          <input id="current" name="current" type="password" required autoComplete="current-password" className={inputClass} />
+      <form action={passwordAction} className="shape paper card on-paper tilt grid gap-5" style={{ "--tilt": "-0.6deg" } as React.CSSProperties}>
+        <h2 className="display t-h2">Mot de passe</h2>
+        <div className="field">
+          <label htmlFor="current" className="label ink-muted">Mot de passe actuel</label>
+          <input id="current" name="current" type="password" required autoComplete="current-password" className="input" />
         </div>
-        <div>
-          <label htmlFor="next" className={labelClass}>Nouveau mot de passe</label>
-          <input id="next" name="next" type="password" required minLength={8} autoComplete="new-password" className={inputClass} />
+        <div className="field">
+          <label htmlFor="next" className="label ink-muted">Nouveau mot de passe</label>
+          <input id="next" name="next" type="password" required minLength={8} autoComplete="new-password" className="input" />
+          <span className="help">8 caractères minimum.</span>
         </div>
         <Feedback state={passwordState} successText="Mot de passe modifié" />
-        <button type="submit" disabled={passwordPending} className={buttonClass}>
-          {passwordPending && <Loader2 size={14} className="animate-spin" />}
-          Changer le mot de passe
-        </button>
+        <div>
+          <button type="submit" disabled={passwordPending} className={`btn btn--dark${passwordPending ? " is-loading" : ""}`}>
+            <span>
+              {passwordPending && <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />}
+              Changer le mot de passe
+            </span>
+          </button>
+        </div>
       </form>
     </div>
   );

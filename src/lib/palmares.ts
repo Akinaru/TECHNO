@@ -10,7 +10,7 @@ export async function getPalmares(userId: string) {
           seenBy: {
             where: { NOT: { userId }, user: { isApproved: true } },
             select: {
-              user: { select: { id: true, name: true, image: true } },
+              user: { select: { id: true, name: true, image: true, accentColor: true } },
             },
             take: 6,
           },
@@ -70,7 +70,7 @@ export async function getCrewFeed(excludeUserId: string, take = 12) {
       id: true,
       times: true,
       updatedAt: true,
-      user: { select: { id: true, name: true, image: true } },
+      user: { select: { id: true, name: true, image: true, accentColor: true } },
       artist: { select: { id: true, name: true, image: true } },
     },
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Share, PlusSquare, X, Smartphone } from "lucide-react";
+import { Share, PlusSquare, X, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function InstallPWA() {
@@ -70,36 +70,28 @@ export function InstallPWA() {
 
   return (
     <>
-      <div className="fixed bottom-24 left-4 right-4 z-[100] md:left-auto md:right-8 md:bottom-8 md:w-96">
+      <div className="fixed bottom-28 left-4 right-4 z-[100] md:left-auto md:right-8 md:bottom-8 md:w-96">
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 relative overflow-hidden group"
+          initial={{ opacity: 0, y: 40, rotate: -4 }}
+          animate={{ opacity: 1, y: 0, rotate: -1.5 }}
+          transition={{ type: "spring", stiffness: 420, damping: 18 }}
+          className="shape paper on-paper flex items-center gap-4 p-4"
         >
-          {/* Decorative background */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-sunset/10 blur-3xl -z-10 group-hover:bg-sunset/20 transition-all duration-1000" />
-          
-          <div className="w-12 h-12 rounded-2xl bg-sunset flex items-center justify-center shrink-0 shadow-lg shadow-sunset/20">
-            <Smartphone className="text-white w-6 h-6" />
-          </div>
+          <span className="sticker">
+            <Smartphone strokeWidth={2.5} />
+          </span>
           
           <div className="flex-1 min-w-0">
-            <h4 className="text-white font-black uppercase tracking-tighter text-sm italic">Installer TechnoDex</h4>
-            <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest truncate">Pour une expérience optimale</p>
+            <h4 className="font-display uppercase text-lg leading-none">Installer TechnoDex</h4>
+            <p className="text-xs ink-muted font-semibold truncate mt-1">Ton dex direct sur l&apos;écran d&apos;accueil</p>
           </div>
           
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleInstallClick}
-              className="px-4 py-2 bg-white text-black rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 shadow-lg"
-            >
-              Installer
+            <button onClick={handleInstallClick} className="btn btn--sm min-w-0! px-4!">
+              <span>Installer</span>
             </button>
-            <button 
-              onClick={dismissBanner}
-              className="p-2 text-white/30 hover:text-white transition-colors"
-            >
-              <X size={18} />
+            <button onClick={dismissBanner} aria-label="Fermer" className="sq sq--light">
+              <X strokeWidth={3} />
             </button>
           </div>
         </motion.div>
@@ -107,49 +99,41 @@ export function InstallPWA() {
 
       <AnimatePresence>
         {showIosInstructions && (
-          <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4 bg-ink/85">
             <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 100 }}
-              className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl p-6"
+              initial={{ opacity: 0, y: -16, scale: 1.05 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: -1 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ type: "spring", stiffness: 420, damping: 20 }}
+              className="shape paper card on-paper w-full max-w-md"
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-black text-white uppercase tracking-widest text-sm italic">Installer TechnoDex</h3>
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="display t-h2">Installer TechnoDex</h3>
                 <button 
                   onClick={() => setShowIosInstructions(false)}
-                  className="text-white/40 hover:text-white"
+                  aria-label="Fermer"
+                  className="sq sq--light"
                 >
-                  <X size={20} />
+                  <X strokeWidth={3} />
                 </button>
               </div>
 
               <div className="space-y-6">
-                <p className="text-white/60 text-xs font-bold leading-relaxed pr-2">
-                  Pour installer l'application sur ton iPhone :
-                </p>
+                <p className="m-0">Pour installer l&apos;application sur ton iPhone :</p>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 text-white">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                      <Share size={16} className="text-sunset" />
-                    </div>
-                    <p className="text-xs font-black uppercase tracking-wider pr-1">1. Clique sur le bouton "Partager"</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-white">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                      <PlusSquare size={16} className="text-sunset" />
-                    </div>
-                    <p className="text-xs font-black uppercase tracking-wider pr-1">2. Sélectionne "Sur l'écran d'accueil"</p>
-                  </div>
-                </div>
+                <ul className="diamonds diamonds--prose font-bold">
+                  <li className="flex! items-center gap-3">
+                    <Share size={18} strokeWidth={2.5} className="text-accent shrink-0" />
+                    1. Clique sur le bouton « Partager »
+                  </li>
+                  <li className="flex! items-center gap-3">
+                    <PlusSquare size={18} strokeWidth={2.5} className="text-accent shrink-0" />
+                    2. Sélectionne « Sur l&apos;écran d&apos;accueil »
+                  </li>
+                </ul>
 
-                <button
-                  onClick={() => setShowIosInstructions(false)}
-                  className="w-full py-4 bg-sunset rounded-2xl font-black uppercase tracking-[0.2em] text-xs text-white shadow-lg shadow-sunset/20"
-                >
-                  J'ai compris
+                <button onClick={() => setShowIosInstructions(false)} className="btn btn--block">
+                  <span>J&apos;ai compris ▸</span>
                 </button>
               </div>
             </motion.div>

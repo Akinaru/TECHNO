@@ -20,36 +20,35 @@ export default async function AdminConfigPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8 text-sunset">Configuration Admin</h1>
-      
-      <form action={updateConfig} className="space-y-6 bg-white/5 p-6 rounded-xl border border-white/10">
-        <div>
-          <label className="block text-sm font-medium mb-2">Spotify Client ID</label>
-          <input 
-            name="clientId"
-            type="text" 
-            defaultValue={spotifyClientId}
-            className="w-full bg-black/50 border border-white/20 rounded-lg p-2 focus:border-sunset-orange outline-none transition-colors"
-          />
-        </div>
+    <div className="max-w-2xl mx-auto p-4 md:p-8 pt-8 md:pt-12">
+      <div className="mb-10">
+        <span className="tag">Zone admin</span>
+        <h1 className="display outlined t-h1 a-drop mt-2" style={{ "--tilt": "-1deg" } as React.CSSProperties}>
+          Configuration
+        </h1>
+      </div>
+
+      <form
+        action={updateConfig}
+        className="shape paper card on-paper tilt grid gap-5"
+        style={{ "--tilt": "0.8deg" } as React.CSSProperties}
+      >
+        <h2 className="display t-h2">Spotify</h2>
+        <label className="field">
+          <span className="label ink-muted">Spotify Client ID</span>
+          <input name="clientId" type="text" defaultValue={spotifyClientId} className="input" />
+        </label>
+
+        <label className="field">
+          <span className="label ink-muted">Spotify Client Secret</span>
+          <input name="clientSecret" type="password" defaultValue={spotifyClientSecret} className="input" />
+        </label>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Spotify Client Secret</label>
-          <input 
-            name="clientSecret"
-            type="password" 
-            defaultValue={spotifyClientSecret}
-            className="w-full bg-black/50 border border-white/20 rounded-lg p-2 focus:border-sunset-orange outline-none transition-colors"
-          />
+          <button type="submit" className="btn">
+            <span>Sauvegarder la config ▸</span>
+          </button>
         </div>
-
-        <button 
-          type="submit"
-          className="bg-sunset px-6 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          Sauvegarder la configuration
-        </button>
       </form>
     </div>
   );

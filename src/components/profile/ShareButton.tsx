@@ -22,12 +22,11 @@ export function ShareButton({ title }: { title: string }) {
   }
 
   return (
-    <button
-      onClick={handleShare}
-      className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer"
-    >
-      {copied ? <Check size={14} /> : <Share2 size={14} />}
-      {copied ? "Lien copié" : "Partager"}
+    <button onClick={handleShare} className="btn btn--dark btn--sm">
+      <span>
+        {copied ? <Check size={16} strokeWidth={2.5} /> : <Share2 size={16} strokeWidth={2.5} />}
+        {copied ? "Lien copié" : "Partager ▸"}
+      </span>
     </button>
   );
 }

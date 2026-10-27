@@ -21,21 +21,21 @@ export function EditableAvatar({ image, name, isOwnProfile }: EditableAvatarProp
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative group">
+      <div className="relative group -rotate-3">
         <UserAvatar
           image={image}
           name={name}
-          className="w-24 h-24 sm:w-32 sm:h-32 text-3xl sm:text-5xl shadow-[0_0_50px_rgba(112,0,255,0.3)] transition-opacity group-hover:opacity-75"
+          className="w-24 h-24 sm:w-32 sm:h-32 text-5xl sm:text-6xl border-[0.22rem] shadow-[var(--shadow-lg)]"
         />
 
         {isOwnProfile && (
-          <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity bg-black/40 rounded-2xl">
+          <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-100 bg-ink/75 text-white">
             {loading ? (
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <Loader2 className="w-8 h-8 animate-spin" strokeWidth={2.5} />
             ) : (
               <>
-                <Upload className="w-8 h-8 text-white mb-1" />
-                <span className="text-[10px] font-black uppercase text-white tracking-widest">Changer</span>
+                <Upload className="w-8 h-8 mb-1" strokeWidth={2.5} />
+                <span className="display text-sm">Changer</span>
               </>
             )}
             <input
@@ -49,7 +49,7 @@ export function EditableAvatar({ image, name, isOwnProfile }: EditableAvatarProp
           </label>
         )}
       </div>
-      {error && <p className="text-[10px] font-black uppercase tracking-widest text-red-400 max-w-[12rem] text-center">{error}</p>}
+      {error && <p className="t-small font-bold text-danger max-w-[12rem] text-center" role="alert">{error}</p>}
     </div>
   );
 }

@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, Plus, Minus, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { updateArtistCountAction } from "@/app/actions/spotify";
+import { ArtistPhoto } from "@/components/artist/ArtistPhoto";
+import { accentStyle } from "@/lib/accent";
 
 type ArtistSeen = {
   id: string;
@@ -21,6 +22,7 @@ type ArtistSeen = {
         id: string;
         name: string | null;
         image: string | null;
+        accentColor?: string | null;
       };
     }[];
   };
@@ -38,6 +40,8 @@ const SORT_MODES: { value: SortMode; label: string }[] = [
   { value: "times", label: "Les + vus" },
   { value: "recent", label: "Récents" },
 ];
+
+const TILTS = [-1.2, 0.9, -0.5, 1.4];
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -109,28 +113,25 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
   return (
     <div className="space-y-8">
       {/* Search Bar + Sort */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-white/30" />
-          </div>
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+        <span className="search w-full sm:max-w-md">
+          <Search strokeWidth={2.5} aria-hidden />
           <input
             type="text"
             placeholder="Rechercher un artiste..."
+            aria-label="Rechercher un artiste"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:border-sunset-orange focus:ring-1 focus:ring-sunset-orange outline-none transition-all"
+            className="input"
           />
-        </div>
-        <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 self-center sm:self-auto" role="group" aria-label="Trier">
+        </span>
+        <div className="segmented w-full sm:w-auto shrink-0" role="group" aria-label="Trier">
           {SORT_MODES.map((mode) => (
             <button
               key={mode.value}
               onClick={() => setSortMode(mode.value)}
               aria-pressed={sortMode === mode.value}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${
-                sortMode === mode.value ? "bg-sunset text-white" : "text-white/40 hover:text-white"
-              }`}
+              className="whitespace-nowrap px-4!"
             >
               {mode.label}
             </button>
@@ -139,111 +140,101 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
       </div>
 
       {filteredAndGroupedArtists.length === 0 ? (
-        <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 space-y-6">
-          <p className="text-xl text-white/50 italic">
+        <div className="shape panel empty">
+          <span className="shape slab boil display t-h3" style={{ "--tilt": "-2deg" } as React.CSSProperties}>
             {initialArtists.length === 0 ? "Aucun DJ pour l'instant." : "Aucun artiste trouvé."}
-          </p>
+          </span>
           {isOwnProfile && initialArtists.length === 0 && (
-            <Link
-              href="/search"
-              className="inline-flex items-center gap-2 bg-sunset px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs text-white"
-            >
-              <Plus size={14} /> Ajouter mon premier DJ
+            <Link href="/search" className="btn btn--sm">
+              <span>
+                <Plus size={16} strokeWidth={2.5} /> Ajouter mon premier DJ ▸
+              </span>
             </Link>
           )}
         </div>
       ) : (
         <div className="space-y-12">
           {filteredAndGroupedArtists.map(([initial, artists]) => (
-            <section key={initial || sortMode} className="space-y-4">
+            <section key={initial || sortMode} className="space-y-5">
               {initial && (
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl sm:text-3xl font-black text-sunset italic pr-2">{initial}</h2>
-                  <div className="h-px bg-white/10 flex-1" />
+                  <h2 className="display outlined t-h2">{initial}</h2>
+                  <div className="divider flex-1 my-0!" />
                 </div>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {artists.map((item) => (
-                  <div key={item.id} className="space-y-2">
-                    <div 
-                      className="group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-sunset-orange transition-all hover:scale-[1.02] block"
-                    >
-                      <Link href={`/artist/${item.artist.id}`} className="absolute inset-0 z-0">
-                        {item.artist.image ? (
-                          <Image 
-                            src={item.artist.image} 
-                            alt={item.artist.name} 
-                            fill
-                            className="object-cover opacity-60 group-hover:opacity-100 transition-opacity group-hover:scale-110 duration-500"
-                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/20">
-                            <span className="text-3xl sm:text-4xl">🎵</span>
-                          </div>
-                        )}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                {artists.map((item, index) => (
+                  <article
+                    key={item.id}
+                    className="shape dex content-start"
+                    style={{ "--tilt": `${TILTS[index % 4]}deg`, "--cut": `var(--cut-${"abc"[index % 3]})` } as React.CSSProperties}
+                  >
+                    <div className="relative">
+                      <Link href={`/artist/${item.artist.id}`} className="block" aria-label={item.artist.name}>
+                        <ArtistPhoto
+                          name={item.artist.name}
+                          image={item.artist.image}
+                          alt={item.artist.name}
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                        />
                       </Link>
-
-                      <div className="absolute top-0 right-0 z-10 flex flex-col">
-                        <div className="bg-sunset min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-bl-2xl shadow-xl border-l border-b border-white/20">
-                          <p className="text-base sm:text-lg font-black text-white leading-none italic pr-1">
-                            {item.times}
-                          </p>
-                        </div>
-                        
-                        {isOwnProfile && (
-                          <div className="flex flex-col gap-1 mt-1 items-end pr-1">
-                            <button 
-                              onClick={() => handleUpdate(item.artist.id, true)}
-                              aria-label={`Vu une fois de plus : ${item.artist.name}`}
-                              disabled={!!loadingId}
-                              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-sunset text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
-                            >
-                              {loadingId === item.artist.id + "-inc" ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-                            </button>
-                            <button 
-                              onClick={() => handleUpdate(item.artist.id, false)}
-                              aria-label={`Retirer un passage : ${item.artist.name}`}
-                              disabled={!!loadingId}
-                              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-red-500 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 cursor-pointer"
-                            >
-                              {loadingId === item.artist.id + "-dec" ? <Loader2 size={14} className="animate-spin" /> : <Minus size={14} />}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-3 sm:p-4 pointer-events-none">
-                        <h3 className="font-black text-sm sm:text-lg leading-tight group-hover:text-sunset-orange transition-colors truncate pr-2">{item.artist.name}</h3>
-                      </div>
+                      <span className="sticker display absolute -top-2 -right-2 z-[2] w-10 h-10 text-xl pointer-events-none">
+                        {item.times}
+                      </span>
                     </div>
+
+                    <h3 className="dex__name truncate">
+                      <Link href={`/artist/${item.artist.id}`} className="hover:text-accent">{item.artist.name}</Link>
+                    </h3>
 
                     {/* Social Avatars */}
                     {item.artist.seenBy && item.artist.seenBy.length > 0 && (
-                      <div className="flex items-center -space-x-2 px-1">
+                      <div className="flex items-center -space-x-1.5">
                         {item.artist.seenBy.slice(0, 3).map((seen) => (
                           <Link 
                             key={seen.user.id} 
                             href={`/profile/${seen.user.id}`}
                             title={seen.user.name || "Utilisateur"}
-                            className="hover:z-10 transition-transform hover:scale-110"
+                            style={accentStyle(seen.user.accentColor)}
+                            className="hover:z-10 transition-transform duration-100 hover:-rotate-6"
                           >
                             <UserAvatar 
                               image={seen.user.image} 
                               name={seen.user.name} 
-                              className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-black rounded-full"
+                              className="w-6 h-6 text-xs shadow-none"
                             />
                           </Link>
                         ))}
                         {item.artist.seenBy.length > 3 && (
-                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-zinc-800 border-2 border-black flex items-center justify-center z-0">
-                            <span className="text-[8px] sm:text-[10px] font-black text-white/50">+{item.artist.seenBy.length - 3}</span>
-                          </div>
+                          <span className="w-6 h-6 bg-panel border-[0.15rem] border-ink flex items-center justify-center font-display text-[0.65rem] text-white">
+                            +{item.artist.seenBy.length - 3}
+                          </span>
                         )}
                       </div>
                     )}
-                  </div>
+
+                    {isOwnProfile && (
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleUpdate(item.artist.id, false)}
+                          aria-label={`Retirer un passage : ${item.artist.name}`}
+                          disabled={!!loadingId}
+                          className="sq"
+                        >
+                          {loadingId === item.artist.id + "-dec" ? <Loader2 className="animate-spin" strokeWidth={2.5} /> : <Minus strokeWidth={2.5} />}
+                        </button>
+                        <button 
+                          onClick={() => handleUpdate(item.artist.id, true)}
+                          aria-label={`Vu une fois de plus : ${item.artist.name}`}
+                          disabled={!!loadingId}
+                          className="sq sq--accent"
+                        >
+                          {loadingId === item.artist.id + "-inc" ? <Loader2 className="animate-spin" strokeWidth={2.5} /> : <Plus strokeWidth={2.5} />}
+                        </button>
+                      </div>
+                    )}
+                  </article>
                 ))}
               </div>
             </section>
@@ -253,23 +244,24 @@ export function ProfileArtistList({ initialArtists, isOwnProfile }: ProfileArtis
 
       {/* Missing Letters Section */}
       {!searchQuery && sortMode === "alpha" && initialArtists.length > 0 && missingLetters.length > 0 && (
-        <section className="pt-12 border-t border-white/5">
-          <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-xl sm:text-2xl font-black text-white/30 uppercase tracking-tighter italic">L&apos;alphabet incomplet</h2>
-            <div className="h-px bg-white/5 flex-1" />
+        <section className="shape panel card">
+          <div className="flex items-baseline justify-between gap-4 mb-5">
+            <h2 className="display t-h2">L&apos;alphabet incomplet</h2>
+            <span className="tag">{missingLetters.length}</span>
           </div>
           
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {missingLetters.map(letter => (
-              <div 
+            {missingLetters.map((letter, index) => (
+              <span
                 key={letter}
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center"
+                className="w-10 h-10 bg-bg grid place-items-center font-display text-xl text-ghost"
+                style={{ transform: `rotate(${index % 2 ? 3 : -3}deg)`, clipPath: `var(--cut-${"abc"[index % 3]})` }}
               >
-                <span className="text-lg sm:text-xl font-black text-white/10 italic">{letter}</span>
-              </div>
+                {letter}
+              </span>
             ))}
           </div>
-          <p className="mt-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-sunset-orange/50 italic">
+          <p className="tag mt-5">
             Trouve des artistes commençant par ces lettres pour compléter ton TechnoDex !
           </p>
         </section>

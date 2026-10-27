@@ -1,51 +1,61 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { computeStats } from "@/lib/palmares";
+import { Medal } from "@/components/ui/Medal";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
 
 export function ProfileStats({ stats }: { stats: ReturnType<typeof computeStats> }) {
   if (stats.uniqueArtists === 0) return null;
 
-  const tiles = [
-    { value: stats.uniqueArtists, label: "DJs différents" },
+  const rows = [
     { value: stats.totalSets, label: "Sets au total" },
     { value: `${stats.lettersCompleted}/26`, label: "Lettres" },
   ];
 
   return (
-    <div className="space-y-4 mb-12">
-      <div className="grid grid-cols-3 gap-3">
-        {tiles.map((tile) => (
-          <div key={tile.label} className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
-            <p className="text-2xl sm:text-4xl font-black text-sunset italic leading-none pr-1">{tile.value}</p>
-            <p className="mt-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white/40">{tile.label}</p>
-          </div>
-        ))}
+    <div className="grid gap-6 md:grid-cols-2 mb-12">
+      <div className="shape paper card on-paper tilt" style={{ "--tilt": "-1.2deg" } as React.CSSProperties}>
+        <span className="tag ink-muted">Ta collection</span>
+        <div className="stat-big mt-1">
+          {stats.uniqueArtists} <span className="text-2xl">DJ</span>
+        </div>
+        <ul className="diamonds display mt-5 text-lg">
+          {rows.map((row) => (
+            <li key={row.label}>
+              {row.label} <span className="ml-auto">{row.value}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="gauge mt-5" style={{ "--v": `${(stats.lettersCompleted / 26) * 100}%` } as React.CSSProperties}>
+          <b />
+          <span>{stats.lettersCompleted} / 26 lettres</span>
+        </div>
       </div>
 
       {stats.top.length > 0 && stats.top[0].times > 1 && (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 italic mb-3 pr-2">Le podium</p>
-          <div className="grid gap-2">
+        <div className="shape panel card">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="display t-h2">Le podium</h2>
+            <span className="tag">Top {stats.top.length}</span>
+          </div>
+          <div className="grid gap-3 mt-4">
             {stats.top.map((item, index) => (
               <Link
                 key={item.id}
                 href={`/artist/${item.artist.id}`}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group"
+                className="shape raised row"
+                style={{ "--tilt": `${index % 2 ? 0.35 : -0.35}deg` } as React.CSSProperties}
               >
-                <span className="text-xl w-7 text-center" aria-hidden>{MEDALS[index]}</span>
-                <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-black/50 shrink-0">
+                <Medal rank={(index + 1) as 1 | 2 | 3} className="w-10 h-12 shrink-0 -rotate-6" />
+                <div className="relative w-10 h-10 overflow-hidden border-[0.15rem] border-ink bg-ink shrink-0">
                   {item.artist.image ? (
                     <Image src={item.artist.image} alt="" fill sizes="40px" className="object-cover" />
                   ) : (
                     <span className="absolute inset-0 flex items-center justify-center">🎵</span>
                   )}
                 </div>
-                <p className="flex-1 font-black uppercase tracking-tight italic truncate group-hover:text-sunset-orange transition-colors pr-2">
-                  {item.artist.name}
-                </p>
-                <p className="text-sm font-black text-sunset-orange pr-1">{item.times}×</p>
+                <p className="flex-1 min-w-0 font-bold truncate">{item.artist.name}</p>
+                <p className="display accent text-xl">{item.times}×</p>
               </Link>
             ))}
           </div>

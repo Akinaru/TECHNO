@@ -4,17 +4,16 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
-import { 
-  Users, 
-  Plus, 
-  Settings, 
-  UserCheck, 
+import {
+  Users,
+  Plus,
+  Settings,
+  UserCheck,
   LogOut,
-  LayoutDashboard,
+  LayoutGrid,
   Menu,
   X,
   User as UserIcon,
-  ChevronDown
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { usePathname } from "next/navigation";
@@ -39,7 +38,7 @@ export function Navbar() {
       }
     }
     fetchPendingCount();
-    
+
     // Refresh count on focus or navigation
     const interval = setInterval(fetchPendingCount, 60000); // every minute
     return () => clearInterval(interval);
@@ -71,22 +70,30 @@ export function Navbar() {
     }
   }, [isMobilePanelOpen]);
 
+  const profileHref = session ? `/profile/${session.user.id}` : "/login";
+  const isAdmin = session?.user.role === "ADMIN";
+
   const navLinks = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/users", label: "Le Crew", icon: Users },
+    { href: "/", label: "Dex", icon: LayoutGrid, active: pathname === "/" },
+    { href: "/users", label: "Le Crew", icon: Users, active: pathname === "/users" },
+  ];
+
+  const accountLinks = [
+    { href: profileHref, label: "Profil", icon: UserIcon, active: pathname.startsWith("/profile") },
+    { href: "/settings", label: "Réglages", icon: Settings, active: pathname === "/settings" },
   ];
 
   const adminLinks = [
-    { 
-      href: "/admin/validation", 
-      label: "Membres", 
-      icon: UserCheck, 
-      showBadge: true 
+    {
+      href: "/admin/validation",
+      label: "Membres",
+      icon: UserCheck,
+      showBadge: true
     },
-    { 
-      href: "/admin/config", 
-      label: "Configuration", 
-      icon: Settings 
+    {
+      href: "/admin/config",
+      label: "Configuration",
+      icon: Settings
     },
   ];
 
@@ -94,268 +101,236 @@ export function Navbar() {
     if (count <= 0) return null;
     const label = count > 9 ? "9+" : count.toString();
     return (
-      <span className="bg-red-500 text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-lg border border-white/10 shrink-0">
+      <span className="font-display bg-danger text-ink text-[11px] min-w-5 h-5 px-1 flex items-center justify-center border-2 border-ink -rotate-6 shrink-0">
         {label}
       </span>
     );
   };
 
+  const menuLinkClass = "flex items-center justify-between gap-3 px-3 py-2.5 font-display uppercase text-ink hover:bg-ink hover:text-accent transition-colors";
+
+  const logo = (
+    <Link href="/" className="flex items-center gap-3 group">
+      <div className="relative w-9 h-9 group-hover:rotate-12 transition-transform">
+        <Image src="/logo.svg" alt="TechnoDex Logo" fill className="object-contain" />
+      </div>
+      <span className="display outlined text-2xl sm:text-3xl">TechnoDex</span>
+    </Link>
+  );
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-md border-b border-white/10 h-16">
-        <div className="max-w-7xl mx-auto px-4 h-full grid grid-cols-3 items-center">
-          
-          {/* LEFT: LOGO & BURGER */}
-          <div className="flex items-center gap-4">
-            <button 
+      <header className="sticky top-0 z-50 w-full bg-bg/90 backdrop-blur-sm border-b-[0.18rem] border-ink">
+        <div className="max-w-7xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
               aria-label="Ouvrir le menu"
-              className="md:hidden text-white/50 hover:text-white cursor-pointer p-1 relative"
+              className="sq md:hidden relative"
               onClick={() => setIsMobilePanelOpen(true)}
             >
-              <Menu size={24} />
-              {session?.user.role === "ADMIN" && pendingCount > 0 && (
-                <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black" />
+              <Menu />
+              {isAdmin && pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-danger border-2 border-ink" />
               )}
             </button>
-            
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-8 h-8 group-hover:rotate-12 transition-transform duration-500">
-                <Image 
-                  src="/logo.svg" 
-                  alt="TechnoDex Logo" 
-                  fill 
-                  className="object-contain"
-                />
-              </div>
-              <span className="hidden sm:block font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TechnoDex</span>
-            </Link>
+            {logo}
           </div>
 
-          {/* CENTER: ADD BUTTON */}
-          <div className="flex justify-center">
-            <Link 
-              href="/search" 
-              className="bg-sunset hover:brightness-110 transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(112,0,255,0.2)]"
-            >
-              <Plus className="w-4 h-4 text-white" />
-              <span className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-white pr-1">Ajouter</span>
-            </Link>
-          </div>
-
-          {/* RIGHT: DESKTOP NAV & PROFILE */}
-          <div className="flex justify-end items-center gap-6">
-            <nav className="hidden md:flex items-center gap-4">
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.href} 
-                  href={link.href}
-                  className={cn(
-                    "text-xs uppercase font-black tracking-widest transition-colors pr-2",
-                    pathname === link.href ? "text-white" : "text-white/40 hover:text-white"
-                  )}
-                >
+          {/* DESKTOP: mots fantômes, l'actif sur un slab */}
+          <nav className="hidden md:flex ghost-nav">
+            {navLinks.map((link) =>
+              link.active ? (
+                <span key={link.href} className="shape slab boil display" style={{ "--tilt": "-2.5deg", fontSize: "1.9rem" } as React.CSSProperties}>
                   {link.label}
-                </Link>
-              ))}
-            </nav>
+                </span>
+              ) : (
+                <Link key={link.href} href={link.href}>{link.label}</Link>
+              )
+            )}
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <Link href="/search" className="btn btn--sm hidden md:inline-flex">
+              <span><Plus size={18} strokeWidth={3} /> Ajouter</span>
+            </Link>
 
             {session ? (
               <div className="relative" ref={dropdownRef}>
-                <button 
+                <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   aria-label="Menu du compte"
                   aria-expanded={isDropdownOpen}
-                  className="flex items-center gap-2 group cursor-pointer relative"
+                  className="flex items-center group cursor-pointer relative"
                 >
-                  <UserAvatar 
-                    image={session.user.image} 
-                    name={session.user.name} 
-                    className="w-8 h-8 border border-white/10 group-hover:border-sunset-orange transition-colors"
+                  <UserAvatar
+                    image={session.user.image}
+                    name={session.user.name}
+                    className="w-10 h-10 -rotate-3 group-hover:rotate-3 transition-transform"
                   />
-                  {session.user.role === "ADMIN" && pendingCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-zinc-950 flex items-center justify-center">
-                        <span className="text-[8px] font-black text-white">{pendingCount > 9 ? "!" : pendingCount}</span>
-                    </div>
+                  {isAdmin && pendingCount > 0 && (
+                    <span className="absolute -top-2 -right-2">{renderBadge(pendingCount)}</span>
                   )}
-                  <ChevronDown className={cn("hidden sm:block w-3 h-3 text-white/30 transition-transform", isDropdownOpen && "rotate-180")} />
                 </button>
 
                 <AnimatePresence>
                   {isDropdownOpen && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-3 w-56 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden p-2"
+                    <motion.div
+                      initial={{ opacity: 0, y: -16, rotate: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                      className="shape paper on-paper absolute right-0 mt-4 w-60 p-2"
                     >
-                      <div className="px-3 py-2 border-b border-white/5 mb-2">
-                        <p className="font-black text-sm text-white truncate pr-2">{session.user.name}</p>
-                        <p className="text-[10px] text-white/40 uppercase font-bold tracking-tight pr-1">{session.user.role}</p>
+                      <div className="px-3 py-2 mb-1 border-b-2 border-dashed border-[#cfd1da]">
+                        <p className="font-display uppercase text-lg truncate">{session.user.name}</p>
+                        <p className="tag ink-muted">{session.user.role}</p>
                       </div>
 
-                      <Link href={`/profile/${session.user.id}`} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
-                        <UserIcon size={14} /> Profil
-                      </Link>
-                      <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white">
-                        <Settings size={14} /> Paramètres
-                      </Link>
+                      {accountLinks.map((link) => (
+                        <Link key={link.href} href={link.href} className={menuLinkClass}>
+                          <span className="flex items-center gap-3"><link.icon size={16} strokeWidth={2.5} /> {link.label}</span>
+                        </Link>
+                      ))}
 
-                      {session.user.role === "ADMIN" && (
+                      {isAdmin && (
                         <>
-                          <div className="h-px bg-white/5 my-1" />
+                          <div className="divider my-1!" />
                           {adminLinks.map((link) => (
-                            <Link 
-                              key={link.href} 
-                              href={link.href} 
-                              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-xs font-black uppercase tracking-widest text-white/60 hover:text-white"
-                            >
-                              <div className="flex items-center gap-3">
-                                <link.icon size={14} /> {link.label}
-                              </div>
+                            <Link key={link.href} href={link.href} className={menuLinkClass}>
+                              <span className="flex items-center gap-3"><link.icon size={16} strokeWidth={2.5} /> {link.label}</span>
                               {link.showBadge && renderBadge(pendingCount)}
                             </Link>
                           ))}
                         </>
                       )}
 
-                      <div className="h-px bg-white/5 my-1" />
-                      <button 
+                      <div className="divider my-1!" />
+                      <button
                         onClick={() => signOut()}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-xs font-black uppercase tracking-widest text-red-500 cursor-pointer"
+                        className={cn(menuLinkClass, "w-full text-danger hover:text-danger")}
                       >
-                        <LogOut size={14} /> Déconnexion
+                        <span className="flex items-center gap-3"><LogOut size={16} strokeWidth={2.5} /> Déconnexion</span>
                       </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             ) : (
-              <Link 
-                href="/login" 
-                className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest pr-2"
-              >
-                Login
+              <Link href="/login" className="btn btn--dark btn--sm">
+                <span>Login</span>
               </Link>
             )}
           </div>
         </div>
       </header>
 
+      {/* MOBILE: barre d'onglets en bas avec bouton central « Ajouter » */}
+      {session && (
+        <nav className="tabbar fixed! z-40 md:hidden" aria-label="Navigation principale">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} aria-current={link.active ? "page" : undefined}>
+              <link.icon strokeWidth={2.5} />
+              {link.label}
+            </Link>
+          ))}
+          <span className="fab-wrap">
+            <Link href="/search" className="fab" aria-label="Ajouter un DJ">
+              <Plus strokeWidth={4} strokeLinecap="square" />
+            </Link>
+          </span>
+          {accountLinks.map((link) => (
+            <Link key={link.label} href={link.href} aria-current={link.active ? "page" : undefined}>
+              <link.icon strokeWidth={2.5} />
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       {/* MOBILE PANEL (DRAWER) */}
       <AnimatePresence>
         {isMobilePanelOpen && (
           <>
             {/* Backdrop */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setIsMobilePanelOpen(false)}
-              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[60] bg-ink/85 md:hidden"
             />
-            
+
             {/* Panel */}
-            <motion.div 
-              initial={{ x: "-100%" }}
+            <motion.div
+              initial={{ x: "-105%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 z-[70] w-[280px] bg-zinc-950 border-r border-white/10 md:hidden flex flex-col"
+              exit={{ x: "-105%" }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              className="shape panel fixed inset-y-0 left-0 z-[70] w-[290px] md:hidden flex flex-col"
+              style={{ "--cut": "polygon(0 0, 100% 0, 97% 100%, 0 100%)" } as React.CSSProperties}
             >
-              <div className="p-6 flex items-center justify-between border-b border-white/5">
-                <Link href="/" className="flex items-center gap-3">
-                  <div className="relative w-8 h-8">
-                    <Image 
-                      src="/logo.svg" 
-                      alt="TechnoDex Logo" 
-                      fill 
-                      className="object-contain"
-                    />
-                  </div>
-                  <span className="font-black text-xl tracking-tighter text-sunset pr-2 uppercase">TechnoDex</span>
-                </Link>
-                <button 
+              <div className="p-5 flex items-center justify-between">
+                {logo}
+                <button
                   aria-label="Fermer le menu"
                   onClick={() => setIsMobilePanelOpen(false)}
-                  className="text-white/40 hover:text-white cursor-pointer"
+                  className="sq"
                 >
-                  <X size={24} />
+                  <X />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                {/* User Info */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6">
                 {session ? (
-                  <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <UserAvatar 
-                      image={session.user.image} 
-                      name={session.user.name} 
+                  <div className="shape raised row" style={{ "--tilt": "-0.6deg" } as React.CSSProperties}>
+                    <UserAvatar
+                      image={session.user.image}
+                      name={session.user.name}
                       className="w-12 h-12"
                     />
-                    <div className="overflow-hidden">
-                      <p className="font-black text-white truncate pr-2">{session.user.name}</p>
-                      <p className="text-[10px] text-white/40 uppercase font-black pr-1">{session.user.role}</p>
+                    <div className="min-w-0">
+                      <p className="font-display uppercase text-lg truncate">{session.user.name}</p>
+                      <p className="tag">{session.user.role}</p>
                     </div>
                   </div>
                 ) : (
-                  <Link href="/login" className="block p-4 bg-sunset rounded-2xl text-center font-black uppercase tracking-widest text-sm text-white">
-                    Connexion
+                  <Link href="/login" className="btn btn--block">
+                    <span>Connexion ▸</span>
                   </Link>
                 )}
 
-                {/* Main Nav */}
-                <nav className="space-y-2">
-                  <p className="px-4 text-[10px] uppercase font-black text-white/30 tracking-widest">Navigation</p>
-                  {navLinks.map((link) => (
-                    <Link 
-                      key={link.href} 
+                <nav className="grid gap-1">
+                  <p className="label text-white/70! px-2 mb-1">Navigation</p>
+                  {[...navLinks, ...(session ? accountLinks : [])].map((link) => (
+                    <Link
+                      key={link.label}
                       href={link.href}
                       className={cn(
-                        "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
-                        pathname === link.href ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                        "flex items-center gap-4 px-3 py-3 font-display uppercase text-xl transition-colors",
+                        link.active ? "bg-accent text-on-accent -rotate-1 shadow-[var(--shadow-sm)]" : "text-white hover:text-accent"
                       )}
                     >
-                      <link.icon size={18} /> {link.label}
+                      <link.icon size={20} strokeWidth={2.5} className={link.active ? undefined : "text-muted"} /> {link.label}
                     </Link>
                   ))}
-                  <Link 
-                    href={session ? `/profile/${session.user.id}` : "/login"}
-                    className={cn(
-                      "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
-                      pathname.startsWith("/profile") ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
-                    )}
-                  >
-                    <UserIcon size={18} /> Mon Profil
-                  </Link>
-                  {session && (
-                    <Link 
-                      href="/settings"
-                      className={cn(
-                        "flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
-                        pathname === "/settings" ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
-                      )}
-                    >
-                      <Settings size={18} /> Paramètres
-                    </Link>
-                  )}
                 </nav>
 
-                {/* Admin Nav */}
-                {session?.user.role === "ADMIN" && (
-                  <nav className="space-y-2">
-                    <p className="px-4 text-[10px] uppercase font-black text-white/30 tracking-widest">Administration</p>
+                {isAdmin && (
+                  <nav className="grid gap-1">
+                    <p className="label text-white/70! px-2 mb-1">Administration</p>
                     {adminLinks.map((link) => (
-                      <Link 
-                        key={link.href} 
+                      <Link
+                        key={link.href}
                         href={link.href}
                         className={cn(
-                          "flex items-center justify-between px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-xs pr-2",
-                          pathname === link.href ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5"
+                          "flex items-center justify-between px-3 py-3 font-display uppercase text-xl transition-colors",
+                          pathname === link.href ? "bg-accent text-on-accent -rotate-1 shadow-[var(--shadow-sm)]" : "text-white hover:text-accent"
                         )}
                       >
-                        <div className="flex items-center gap-4">
-                            <link.icon size={18} /> {link.label}
-                        </div>
+                        <span className="flex items-center gap-4">
+                          <link.icon size={20} strokeWidth={2.5} className={pathname === link.href ? undefined : "text-muted"} /> {link.label}
+                        </span>
                         {link.showBadge && renderBadge(pendingCount)}
                       </Link>
                     ))}
@@ -363,14 +338,13 @@ export function Navbar() {
                 )}
               </div>
 
-              {/* Logout at bottom */}
               {session && (
-                <div className="p-4 border-t border-white/5">
-                  <button 
+                <div className="p-4">
+                  <button
                     onClick={() => signOut()}
-                    className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-xs cursor-pointer hover:bg-red-500/20 transition-colors"
+                    className="btn btn--danger btn--block"
                   >
-                    <LogOut size={18} /> Déconnexion
+                    <span><LogOut size={18} strokeWidth={2.5} /> Déconnexion</span>
                   </button>
                 </div>
               )}

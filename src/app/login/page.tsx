@@ -4,7 +4,6 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,58 +35,49 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white/5 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl"
-      >
-        <h1 className="text-4xl font-black mb-2 text-sunset text-center">CONNEXION</h1>
-        <p className="text-center text-white/50 mb-8">Accède à ton TechnoDex</p>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <span className="tag">Accède à ton TechnoDex</span>
+          <h1 className="display outlined t-h1 a-drop mt-2" style={{ "--tilt": "-1deg" } as React.CSSProperties}>
+            Connexion
+          </h1>
+        </div>
 
         {error && (
-          <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm mb-6 border border-red-500/50">
-            {error}
+          <div role="alert" className="banner banner--error mb-6">
+            <span className="display">!</span>
+            <p>{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-white/70 mb-1">Email</label>
-            <input 
-              name="email" 
-              type="email" 
-              required 
-              className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-sunset-orange focus:ring-1 focus:ring-sunset-orange transition-all outline-none"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-white/70 mb-1">Mot de passe</label>
-            <input 
-              name="password" 
-              type="password" 
-              required 
-              className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-sunset-orange focus:ring-1 focus:ring-sunset-orange transition-all outline-none"
-            />
-          </div>
+        <div className="shape paper card on-paper tilt a-drop" style={{ "--tilt": "-1deg" } as React.CSSProperties}>
+          <form onSubmit={handleSubmit} className="grid gap-5">
+            <label className="field">
+              <span className="label ink-muted">Email</span>
+              <input name="email" type="email" required className="input" />
+            </label>
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-sunset text-white font-black py-3 rounded-xl hover:opacity-90 transition-opacity mt-4 disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? "Connexion..." : "SE CONNECTER"}
-          </button>
-        </form>
+            <label className="field">
+              <span className="label ink-muted">Mot de passe</span>
+              <input name="password" type="password" required className="input" />
+            </label>
 
-        <p className="text-center text-sm text-white/50 mt-6">
-          Pas encore de compte ?{" "}
-          <Link href="/register" className="text-sunset-orange font-bold hover:underline">
-            S&apos;inscrire
-          </Link>
-        </p>
-      </motion.div>
+            <button type="submit" disabled={loading} className={`btn btn--block mt-2${loading ? " is-loading" : ""}`}>
+              <span>{loading ? "Connexion…" : "Se connecter ▸"}</span>
+            </button>
+          </form>
+
+          <div className="divider" />
+
+          <p className="text-center text-sm ink-muted">
+            Pas encore de compte ?{" "}
+            <Link href="/register" className="link text-ink">
+              S&apos;inscrire
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

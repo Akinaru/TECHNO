@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { saveAvatar, deleteAvatar } from "@/lib/avatar";
+import { isValidAccent } from "@/lib/accent";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
@@ -67,5 +68,19 @@ export async function changePasswordAction(formData: FormData): Promise<ActionRe
     where: { id: session.user.id },
     data: { password: await bcrypt.hash(next, 10) },
   });
+  return { success: true };
+}
+
+export async function updateAccentColorAction(color: string | null): Promise<ActionResult> {
+  const session = await requireUser();
+  if (color !== null && !isValidAccent(color)) {
+    return { success: false, error: "Couleur invalide" };
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { accentColor: color },
+  });
+  revalidatePath("/", "layout");
   return { success: true };
 }

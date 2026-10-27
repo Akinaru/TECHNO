@@ -52,51 +52,53 @@ export function ArtistAction({ artistId, initialCount }: ArtistActionProps) {
       <button
         onClick={handleAdd}
         disabled={loading}
-        className="w-full md:w-auto px-8 py-4 bg-sunset hover:bg-sunset-orange text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-sunset/20 flex items-center justify-center gap-3 group"
+        className={`btn btn--lg btn--block md:w-auto ${loading ? "is-loading" : ""}`}
       >
-        {loading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
-          <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-        )}
-        <span>Je l&apos;ai vu !</span>
+        <span>
+          {loading ? (
+            <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
+          ) : (
+            <Plus className="w-5 h-5" strokeWidth={2.5} />
+          )}
+          Je l&apos;ai vu ! ▸
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
-      <div className="flex items-center bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+      <div className="stepper">
         <button
           onClick={() => handleUpdate(false)}
           disabled={loading}
-          className="p-4 hover:bg-white/5 text-white/50 hover:text-white transition-colors border-r border-white/10"
+          className="sq sq--lg"
           title="Diminuer"
           aria-label="Diminuer"
         >
-          <Minus size={20} />
+          <Minus strokeWidth={2.5} />
         </button>
         
-        <div className="px-8 py-4 flex items-center gap-3">
-          <span className="text-2xl font-black text-sunset italic leading-none">{count}</span>
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/30 italic">fois vu</span>
+        <div className="grid justify-items-center leading-none">
+          <output className="text-accent" aria-live="polite">{count}</output>
+          <span className="label">fois vu</span>
         </div>
 
         <button
           onClick={() => handleUpdate(true)}
           disabled={loading}
-          className="p-4 hover:bg-white/5 text-white/50 hover:text-white transition-colors border-l border-white/10"
+          className="sq sq--lg sq--accent"
           title="Augmenter"
           aria-label="Augmenter"
         >
-          <Plus size={20} />
+          {loading ? <Loader2 className="animate-spin" strokeWidth={2.5} /> : <Plus strokeWidth={2.5} />}
         </button>
       </div>
 
-      <div className="flex items-center gap-2 text-green-500 bg-green-500/10 px-4 py-2 rounded-xl border border-green-500/20">
-        <Check size={16} strokeWidth={3} />
-        <span className="text-[10px] font-black uppercase tracking-widest">Dans ton TechnoDex</span>
-      </div>
+      <span className="stamp stamp--green a-slam text-sm inline-flex! items-center gap-2" style={{ "--tilt": "-6deg" } as React.CSSProperties}>
+        <Check size={16} strokeWidth={2.5} />
+        Dans ton TechnoDex
+      </span>
     </div>
   );
 }

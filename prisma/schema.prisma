@@ -15,6 +15,7 @@ model User {
   image         String?
   role          String    @default("USER") // USER, ADMIN
   isApproved    Boolean   @default(false)
+  accentColor   String?   // Couleur primaire choisie (#rrggbb), null = couleur par défaut
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   artists       ArtistSeen[]
